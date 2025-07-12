@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import defaultUserIcon from "../assets/user.svg";
-import fullLogo from "../assets/full_logo2.png";
+import fullLogo from "../assets/full_logo_wide.png";
 
 const Navbar = () => {
   const { currentUser } = useAuth();
@@ -57,11 +57,8 @@ const Navbar = () => {
             <img
               src={fullLogo}
               alt="Align Logo"
-              className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+              className="w-10 h-10 sm:w-12 sm:h-12 object-contain -ml-4"
             />
-            {/* <span className="text-emerald-400 font-bold text-lg sm:text-xl font-sans">
-              JobFitt.Ai
-            </span> */}
           </Link>
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Dashboard button - only show if authenticated */}
@@ -135,7 +132,7 @@ const Navbar = () => {
                 key={path}
                 to={path}
                 onClick={handleNavClick}
-                className="block py-2 text-gray-100 hover:text-emerald-400 transition-colors"
+                className="block py-2 text-gray-100 hover:text-emerald-400 transition-colors font-bold"
               >
                 {["Home", "About Align", "Contact Us"][i]}
               </Link>
@@ -165,116 +162,119 @@ const Navbar = () => {
     );
   }
 
-  // Desktop version
+  // Desktop version with proper grid layout for perfect centering
   return (
     <div
       className={`${
         scrolled ? "px-7 py-3.5" : "px-8 py-4"
-      } flex items-center justify-between z-50 transition-all duration-300 ${
+      } z-50 transition-all duration-300 ${
         scrolled
           ? "fixed top-4 left-4 right-4 mx-auto max-w-5xl"
           : "absolute top-0 left-0 right-0 w-full"
       } ${baseBg}`}
     >
-      <Link
-        to="/"
-        className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0"
-      >
-        <img
-          src={fullLogo}
-          alt="Align Logo"
-          className={`object-contain ${
-            scrolled ? "w-12 h-12 lg:w-13 lg:h-13" : "w-14 h-14"
-          }`}
-        />
-        {/* <span
-          className={`text-emerald-400 font-bold font-sans whitespace-nowrap ${
-            scrolled ? "text-xl lg:text-2xl" : "text-2xl"
-          }`}
-        >
-          JobFitt.Ai
-        </span> */}
-      </Link>
-
-      <div
-        className={`hidden lg:flex items-center ${
-          scrolled ? "space-x-7" : "space-x-8"
-        }`}
-      >
-        {["/", "/Align", "/contact"].map((path, i) => (
-          <Link
-            key={path}
-            to={path}
-            className={`text-gray-100 hover:text-emerald-400 transition-colors whitespace-nowrap font-medium ${
-              scrolled ? "text-sm" : "text-base"
-            }`}
-          >
-            {["Home", "About Align", "Contact Us"][i]}
-          </Link>
-        ))}
-      </div>
-
-      <div
-        className={`flex items-center flex-shrink-0 ${
-          scrolled ? "space-x-3" : "space-x-4"
-        }`}
-      >
-        {/* Pricing button */}
-        <Link
-          to="/pricing"
-          className={`bg-emerald-600 text-white font-semibold rounded-full hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap ${
-            scrolled ? "px-5 py-2.5 text-sm" : "px-6 py-2.5 text-base"
-          }`}
-        >
-          Pricing
-        </Link>
-
-        {/* Dashboard button - only show if authenticated */}
-        {isAuthenticated && (
-          <Link
-            to="/dashboard"
-            className={`bg-emerald-600 text-white font-semibold rounded-full hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap ${
-              scrolled ? "px-5 py-2.5 text-sm" : "px-6 py-2.5 text-base"
-            }`}
-          >
-            Dashboard
-          </Link>
-        )}
-
-        {isAuthenticated ? (
-          <Link to="/account" className="flex-shrink-0">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center w-full gap-4">
+        {/* Left section - Logo */}
+        <div className="flex">
+          <Link to="/" className="flex items-center flex-shrink-0">
             <img
-              src={currentUser?.photoURL || defaultUserIcon}
-              alt="Profile"
-              className={`rounded-full object-cover cursor-pointer border-2 border-emerald-500 ${
-                scrolled ? "w-9 h-9" : "w-10 h-10"
+              src={fullLogo}
+              alt="Align Logo"
+              className={`object-contain -ml-4 ${
+                scrolled
+                  ? "h-6 w-auto lg:h-7 lg:w-auto"
+                  : "h-7 w-auto lg:h-8 lg:w-auto"
               }`}
             />
           </Link>
-        ) : (
+        </div>
+
+        {/* Center section - Navigation */}
+        <div className="flex justify-center ml-40">
           <div
-            className={`flex items-center ${
+            className={`hidden lg:flex items-center ${
+              scrolled ? "space-x-7" : "space-x-8"
+            }`}
+          >
+            {["/", "/Align", "/contact"].map((path, i) => (
+              <Link
+                key={path}
+                to={path}
+                className={`text-gray-100 hover:text-emerald-400 transition-colors whitespace-nowrap font-bold ${
+                  scrolled ? "text-base" : "text-lg"
+                }`}
+              >
+                {["Home", "About Align", "Contact Us"][i]}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Right section - Buttons */}
+        <div className="flex justify-end">
+          <div
+            className={`flex items-center flex-shrink-0 ${
               scrolled ? "space-x-3" : "space-x-4"
             }`}
           >
+            {/* Pricing button */}
             <Link
-              to="/login"
-              className={`text-emerald-400 font-semibold hover:text-emerald-300 transition-colors whitespace-nowrap hidden xl:block ${
-                scrolled ? "text-sm" : "text-base"
-              }`}
-            >
-              Log In
-            </Link>
-            <Link
-              to="/signup"
+              to="/pricing"
               className={`bg-emerald-600 text-white font-semibold rounded-full hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap ${
-                scrolled ? "px-5 py-2.5 text-sm" : "px-6 py-2.5 text-base"
+                scrolled ? "px-5 py-2.5 text-base" : "px-6 py-2.5 text-lg"
               }`}
             >
-              Sign Up
+              Pricing
             </Link>
+
+            {/* Dashboard button - only show if authenticated */}
+            {isAuthenticated && (
+              <Link
+                to="/dashboard"
+                className={`bg-emerald-600 text-white font-semibold rounded-full hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap ${
+                  scrolled ? "px-5 py-2.5 text-base" : "px-6 py-2.5 text-lg"
+                }`}
+              >
+                Dashboard
+              </Link>
+            )}
+
+            {isAuthenticated ? (
+              <Link to="/account" className="flex-shrink-0">
+                <img
+                  src={currentUser?.photoURL || defaultUserIcon}
+                  alt="Profile"
+                  className={`rounded-full object-cover cursor-pointer border-2 border-emerald-500 ${
+                    scrolled ? "w-9 h-9" : "w-10 h-10"
+                  }`}
+                />
+              </Link>
+            ) : (
+              <div
+                className={`flex items-center ${
+                  scrolled ? "space-x-3" : "space-x-4"
+                }`}
+              >
+                <Link
+                  to="/login"
+                  className={`text-emerald-400 font-semibold hover:text-emerald-300 transition-colors whitespace-nowrap hidden xl:block ${
+                    scrolled ? "text-base" : "text-lg"
+                  }`}
+                >
+                  Log In
+                </Link>
+                <Link
+                  to="/signup"
+                  className={`bg-emerald-600 text-white font-semibold rounded-full hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap ${
+                    scrolled ? "px-5 py-2.5 text-base" : "px-6 py-2.5 text-lg"
+                  }`}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

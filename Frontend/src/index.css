@@ -51,5 +51,17 @@ body {
     background-color: #f9f9f9;
   }
 }
+html,
+body {
+  background-color: #111827 !important;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+#root {
+  background-color: #111827;
+  min-height: 100vh;
+}
 
 @tailwind utilities;

@@ -1,152 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Chat from "../components/Chat";
 import How from "../pages/How";
 import Navbar from "../components/Navbar";
-// import HeroImage from "../assets/hero1.jpg";
-// import HeroImage2 from "../assets/hero2.jpg";
-// import HeroImage3 from "../assets/hero3.jpg";
-import "../styles/Main.css";
 
 function Main() {
-  // State for conversation history
   const [conversation, setConversation] = useState([]);
   const [showATSTooltip, setShowATSTooltip] = useState(false);
   const [showATSTooltip2, setShowATSTooltip2] = useState(false);
+  const [animateUnderline, setAnimateUnderline] = useState(false);
+
+  useEffect(() => {
+    // Trigger the underline animation after component mounts
+    const timer = setTimeout(() => {
+      setAnimateUnderline(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="claude-chat-container">
+    <div className="w-full min-h-screen bg-gray-900 text-gray-100">
       <Navbar />
-      <div className="jobfit-hero-section">
-        <div className="jobfit-content">
-          <h3 className="jobfit-tagline">One-Click Career Upgrade</h3>
-          <h1 className="jobfit-title">
+      <div className="w-full flex justify-center items-center px-5 py-10 mt-14">
+        <div className="flex-1 text-center max-w-4xl">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent leading-tight mb-6">
             Tailor-Made Resumes & Cover Letters
             <br />
-            in <span className="jobfit-highlight">Seconds</span>
+            in{" "}
+            <span className="relative inline-block">
+              Seconds
+              <span
+                className={`absolute left-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-1000 ease-out ${
+                  animateUnderline ? "w-full" : "w-0"
+                }`}
+                style={{ bottom: "-6px" }}
+              ></span>
+            </span>
           </h1>
-          <h3 className="jobfit-tagline">
-            JobFitt makes your job application stand out
-          </h3>
-
-          <p className="jobfit-description">
-            Upload your latest / best resumes and the job you want - JobFit
-            creates a customized resume, cover letter, company research and
-            interview prep for you!
+          <p className="text-lg md:text-xl leading-relaxed text-gray-300 mt-4 text-center max-w-3xl mx-auto">
+            Upload your resume and job description. We'll{" "}
+            <span className="text-purple-400 font-semibold">align</span> your
+            experience with what employers are looking for, creating an
+            application that stands out.
           </p>
-          <Link to="/signup" className="jobfit-signup-button">
-            Sign Up
-          </Link>
+          <div className="mt-8">
+            <Link
+              to="/signup"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 border border-transparent rounded-full hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              Get Started
+            </Link>
+          </div>
         </div>
-        {/* <div className="jobfit-image">
-          <img src={HeroImage} alt="JobFit Hero" />
-        </div> */}
       </div>
-
       <Chat conversation={conversation} setConversation={setConversation} />
-
-      <div className="bg-white dark:bg-gray-900 py-16 transition-colors">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"></div>
-        <div className="flex flex-col md:flex-row items-center">
-          {/* Left Image Area */}
-          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
-            {/* <img
-              src={HeroImage2}
-              alt="JobFitt.ai career optimization"
-              className="rounded-lg shadow-lg object-cover max-h-90 w-full"
-            /> */}
-          </div>
-
-          {/* Right Content Area */}
-          <div className="md:w-1/2 relative">
-            <div className="relative z-10 p-8 rounded-lg transition-colors text-left">
-              {/* New Orange Tagline */}
-              <p className="text-xl font-semibold text-orange-600 dark:text-orange-400 mb-2">
-                Resumes Customized to Perfection
-              </p>
-
-              {/* Updated Green Headline */}
-              <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-gradient-to-r from-green-600 via-green-700 to-green-800 bg-clip-text dark:text-transparent dark:bg-gradient-to-r dark:from-blue-500 dark:via-purple-500 dark:to-pink-500 dark:bg-clip-text mb-2 transition-colors">
-                One-Click Career Upgrade – ATS -Ready for Top Selection
-              </h1>
-
-              {/* Bottom Orange Tagline, stacked just like in first hero */}
-              <p className="text-2xl font-semibold text-orange-600 dark:text-orange-400 mb-4">
-                JobFitt makes your job application stand out.
-              </p>
-
-              {/* ATS Button */}
-              <div className="mb-4">
-                <button
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer relative transition-colors"
-                  onMouseEnter={() => setShowATSTooltip(true)}
-                  onMouseLeave={() => setShowATSTooltip(false)}
-                  onClick={() => setShowATSTooltip(!showATSTooltip)}
-                >
-                  *What is ATS?
-                  {showATSTooltip && (
-                    <div className="absolute top-6 left-0 z-20 w-64 p-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded shadow-lg transition-colors">
-                      Employers use AI/ML-powered ATS to screen resumes.
-                      JobFitt's ATS-optimized CVs ensure you get shortlisted.
-                    </div>
-                  )}
-                </button>
-              </div>
-
-              <Link
-                to="/signup"
-                className="inline-block mt-5 px-6 py-3 font-semibold text-white bg-[#074b3c] rounded-full shadow-md transition-all duration-300 hover:bg-[#063f33] hover:-translate-y-0.5 dark:bg-gradient-to-r dark:from-[#4a6bff] dark:via-[#8a64ff] dark:to-[#e85f88] dark:text-white dark:shadow-[0_4px_12px_rgba(255,255,255,0.1)] dark:hover:opacity-90"
-              >
-                Sign Up
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-gray-900 py-16 transition-colors">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center">
-            {/* Left Content Area */}
-            <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 relative">
-              <div className="relative z-10 p-8 rounded-lg transition-colors text-left">
-                {/* New Orange Tagline */}
-                <p className="text-xl font-semibold text-orange-600 dark:text-orange-400 mb-2">
-                  More Job Apps - in Less Time
-                </p>
-
-                {/* Main Headline - Same styling as original */}
-                <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-gradient-to-r from-green-600 via-green-700 to-green-800 bg-clip-text dark:text-transparent dark:bg-gradient-to-r dark:from-blue-500 dark:via-purple-500 dark:to-pink-500 dark:bg-clip-text mb-2 transition-colors">
-                  JobFitt streamlines your job search process.
-                </h1>
-
-                {/* Bottom Orange Tagline */}
-                <p className="text-2xl font-semibold text-orange-600 dark:text-orange-400 mb-4">
-                  Drop in your best resume and target role—JobFit delivers an
-                  ATS-ready custom resume, cover letter, company deep-dive, and
-                  mock interview guide.
-                </p>
-
-                <Link
-                  to="/how"
-                  className="inline-block mt-5 px-6 py-3 font-semibold text-white bg-[#074b3c] rounded-full shadow-md transition-all duration-300 hover:bg-[#063f33] hover:-translate-y-0.5 dark:bg-gradient-to-r dark:from-[#4a6bff] dark:via-[#8a64ff] dark:to-[#e85f88] dark:text-white dark:shadow-[0_4px_12px_rgba(255,255,255,0.1)] dark:hover:opacity-90"
-                >
-                  Learn More
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Image Area */}
-            <div className="md:w-1/2">
-              {/* <img
-                src={HeroImage3}
-                alt="JobFitt.ai career optimization"
-                className="rounded-lg shadow-lg object-cover max-h-90 w-full"
-              /> */}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
