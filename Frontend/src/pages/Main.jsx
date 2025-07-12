@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import Chat from "../components/Chat";
 import How from "../pages/How";
 import Navbar from "../components/Navbar";
-import HeroImage from "../assets/hero1.jpg";
-import HeroImage2 from "../assets/hero2.jpg";
-import HeroImage3 from "../assets/hero3.jpg";
+// import HeroImage from "../assets/hero1.jpg";
+// import HeroImage2 from "../assets/hero2.jpg";
+// import HeroImage3 from "../assets/hero3.jpg";
 import "../styles/Main.css";
 
 function Main() {
@@ -38,9 +38,9 @@ function Main() {
             Sign Up
           </Link>
         </div>
-        <div className="jobfit-image">
+        {/* <div className="jobfit-image">
           <img src={HeroImage} alt="JobFit Hero" />
-        </div>
+        </div> */}
       </div>
 
       <Chat conversation={conversation} setConversation={setConversation} />
@@ -50,11 +50,11 @@ function Main() {
         <div className="flex flex-col md:flex-row items-center">
           {/* Left Image Area */}
           <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
-            <img
+            {/* <img
               src={HeroImage2}
               alt="JobFitt.ai career optimization"
               className="rounded-lg shadow-lg object-cover max-h-90 w-full"
-            />
+            /> */}
           </div>
 
           {/* Right Content Area */}
@@ -138,11 +138,11 @@ function Main() {
 
             {/* Right Image Area */}
             <div className="md:w-1/2">
-              <img
+              {/* <img
                 src={HeroImage3}
                 alt="JobFitt.ai career optimization"
                 className="rounded-lg shadow-lg object-cover max-h-90 w-full"
-              />
+              /> */}
             </div>
           </div>
         </div>
