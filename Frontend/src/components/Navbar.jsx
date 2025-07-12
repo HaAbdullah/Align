@@ -55,8 +55,8 @@ const Navbar = () => {
         >
           <Link to="/" className="flex items-center space-x-2">
             <img
-              src={logo}
-              alt="JobFitt.Ai Logo"
+              src={fullLogo}
+              alt="Align Logo"
               className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
             />
             {/* <span className="text-emerald-400 font-bold text-lg sm:text-xl font-sans">
@@ -181,7 +181,7 @@ const Navbar = () => {
         className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0"
       >
         <img
-          src={logo}
+          src={fullLogo}
           alt="Align Logo"
           className={`object-contain ${
             scrolled ? "w-12 h-12 lg:w-13 lg:h-13" : "w-14 h-14"
