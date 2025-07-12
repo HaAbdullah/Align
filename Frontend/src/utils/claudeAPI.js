@@ -11,7 +11,7 @@ export const sendJobDescriptionToClaude = async (prompt) => {
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const response = await fetch(`${API_BASE_URL}/create-resume`, {
       method: "POST",
@@ -49,7 +49,7 @@ export const sendCoverLetterToClaude = async (prompt) => {
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
       method: "POST",
@@ -101,7 +101,7 @@ export const sendChatFeedbackToClaude = async (
       typeof window !== "undefined" && window.location.hostname === "localhost";
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const endpoint =
       documentType === "resume" ? "create-resume" : "create-cover-letter";
@@ -145,7 +145,7 @@ export const sendJobDescriptionForQuestions = async (jobDescription) => {
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const response = await fetch(`${API_BASE_URL}/generate-questions`, {
       method: "POST",
@@ -183,7 +183,7 @@ export const sendJobDescriptionForCompensation = async (jobDescription) => {
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const response = await fetch(`${API_BASE_URL}/generate-compensation`, {
       method: "POST",
@@ -220,7 +220,7 @@ export const sendJobDescriptionForCompanyInsights = async (jobDescription) => {
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const response = await fetch(`${API_BASE_URL}/generate-company-insights`, {
       method: "POST",
@@ -265,7 +265,7 @@ export const sendJobDescriptionForKeywords = async (
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://jobfit-backend-29ai.onrender.com/api";
+      : "https://align-vahq.onrender.com/api";
 
     const response = await fetch(`${API_BASE_URL}/generate-keywords`, {
       method: "POST",
