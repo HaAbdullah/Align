@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import defaultUserIcon from "../assets/user.svg";
+import fullLogo from "../assets/full_logo2.png";
 
 const Navbar = () => {
   const { currentUser } = useAuth();
@@ -54,13 +55,13 @@ const Navbar = () => {
         >
           <Link to="/" className="flex items-center space-x-2">
             <img
-              src="/logo.png"
+              src={logo}
               alt="JobFitt.Ai Logo"
               className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
             />
-            <span className="text-emerald-400 font-bold text-lg sm:text-xl font-sans">
+            {/* <span className="text-emerald-400 font-bold text-lg sm:text-xl font-sans">
               JobFitt.Ai
-            </span>
+            </span> */}
           </Link>
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Dashboard button - only show if authenticated */}
@@ -129,14 +130,14 @@ const Navbar = () => {
           }`}
         >
           <div className="px-4 py-3 space-y-2">
-            {["/", "/how", "/why", "/contact"].map((path, i) => (
+            {["/", "/Align", "/contact"].map((path, i) => (
               <Link
                 key={path}
                 to={path}
                 onClick={handleNavClick}
                 className="block py-2 text-gray-100 hover:text-emerald-400 transition-colors"
               >
-                {["Home", "How It Works?", "Why JobFitt.Ai?", "Contact Us"][i]}
+                {["Home", "About Align", "Contact Us"][i]}
               </Link>
             ))}
             {/* Dashboard in mobile menu - only show if authenticated */}
@@ -180,19 +181,19 @@ const Navbar = () => {
         className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0"
       >
         <img
-          src="/logo.png"
-          alt="JobFitt.Ai Logo"
+          src={logo}
+          alt="Align Logo"
           className={`object-contain ${
             scrolled ? "w-12 h-12 lg:w-13 lg:h-13" : "w-14 h-14"
           }`}
         />
-        <span
+        {/* <span
           className={`text-emerald-400 font-bold font-sans whitespace-nowrap ${
             scrolled ? "text-xl lg:text-2xl" : "text-2xl"
           }`}
         >
           JobFitt.Ai
-        </span>
+        </span> */}
       </Link>
 
       <div
@@ -200,7 +201,7 @@ const Navbar = () => {
           scrolled ? "space-x-7" : "space-x-8"
         }`}
       >
-        {["/", "/how", "/why", "/contact"].map((path, i) => (
+        {["/", "/Align", "/contact"].map((path, i) => (
           <Link
             key={path}
             to={path}
@@ -208,7 +209,7 @@ const Navbar = () => {
               scrolled ? "text-sm" : "text-base"
             }`}
           >
-            {["Home", "How It Works?", "Why JobFitt.Ai?", "Contact Us"][i]}
+            {["Home", "About Align", "Contact Us"][i]}
           </Link>
         ))}
       </div>
