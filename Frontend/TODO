@@ -1,0 +1,18 @@
+Code:
+  - Code both resume and job description input ✅
+  - change download to be pdf✅
+  - allow resume input to be pdfs✅
+  - Fix 10 seconds time limit✅
+  - make claude give html output✅
+  - change "instructions.txt" to actual prompt✅
+  - Change summary to actual resume✅
+  - Fix formatting of resume output✅
+  - Design a proper UI
+  - Impelement the UI
+  - Add all sections in the navigation bar
+  - Allow multiple resume uploads
+  - Ad
+  - Add testimonials section
+
+Research:
+  - Learn how background functions work

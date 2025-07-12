@@ -1,0 +1,827 @@
+/* CompanyInsights.css */
+.company-insights-container {
+  font-family: "Inter", sans-serif;
+  background-color: #f5fbf8; /* Light mode default */
+  border-radius: 12px;
+  border: 1px solid #ddfee9; /* Light mode default */
+  padding: 0;
+  color: #333; /* Light mode default */
+  overflow: hidden;
+  margin: 20px 0;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode for the main container */
+.dark .company-insights-container {
+  background-color: #1e2023;
+  border: 1px solid;
+  border-image: linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88) 1;
+  color: #e0e0e0;
+}
+
+.company-header {
+  background-color: #f8fffe; /* Light mode default */
+  padding: 32px;
+  text-align: center;
+  border-bottom: 2px solid #e6f4ef; /* Light mode default */
+  transition: all 0.3s ease;
+}
+
+/* Dark mode for header */
+.dark .company-header {
+  background-color: #1a1c20;
+  border-bottom-color: #2d2f36;
+}
+
+.company-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333; /* Light mode default */
+  margin: 0 0 8px 0;
+  text-shadow: none; /* No text-shadow for light mode */
+}
+
+/* Dark mode for header title */
+.dark .company-header h2 {
+  color: #e0e0e0;
+}
+
+.company-header p {
+  font-size: 16px;
+  color: #666; /* Light mode default */
+  margin: 0 0 20px 0;
+  opacity: 0.9;
+}
+
+/* Dark mode for header subtitle */
+.dark .company-header p {
+  color: #b0b0b0;
+}
+
+.company-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background-color: #e9f9f3; /* Light mode default */
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #42be94; /* Light mode default */
+  border: 1px solid #d1f2e4; /* Light mode default */
+}
+
+/* Dark mode for stats badge */
+.dark .stat {
+  background-color: #2a2d31;
+  color: #4a6bff;
+  border-color: #3a3d42;
+}
+
+.sections-container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Added gap to match CompensationBenchmarking.css */
+}
+
+.section-card {
+  background-color: white; /* Light mode default */
+  border-bottom: 1px solid #e6f4ef; /* Light mode default */
+  border-radius: 10px; /* Adjusted to match CompensationBenchmarking.css */
+  border: 1px solid #e6f4ef; /* Added to match CompensationBenchmarking.css */
+  overflow: hidden; /* Added to match CompensationBenchmarking.css */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); /* Added to match CompensationBenchmarking.css */
+}
+
+.section-card:hover {
+  background-color: #f0fdf9; /* Light mode default */
+  box-shadow: 0 4px 12px rgba(66, 190, 148, 0.1); /* Added to match CompensationBenchmarking.css */
+  border-color: #42be94; /* Added to match CompensationBenchmarking.css */
+}
+
+/* Dark mode for section card */
+.dark .section-card {
+  background-color: #16181c;
+  border-bottom: 1px solid #2d2f36;
+  border-color: #2d2f36;
+}
+
+.dark .section-card:hover {
+  background-color: #1a1c20;
+  border-color: #4a6bff;
+  box-shadow: 0 4px 12px rgba(74, 107, 255, 0.1);
+}
+
+.section-card:last-child {
+  border-bottom: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px; /* Adjusted to match CompensationBenchmarking.css */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f8fffe; /* Light mode default */
+  border-bottom: 1px solid #e6f4ef; /* Added to match CompensationBenchmarking.css */
+}
+
+.section-header:hover {
+  background-color: #f0fdf9; /* Light mode default */
+}
+
+/* Dark mode for section header */
+.dark .section-header {
+  background-color: #1a1c20;
+  border-bottom-color: #2d2f36;
+}
+
+.dark .section-header:hover {
+  background-color: #1e2024;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  margin: 0;
+}
+
+/* Dark mode for section header title */
+.dark .section-header h3 {
+  color: #e0e0e0;
+}
+
+.expand-icon {
+  font-size: 12px; /* Adjusted to match CompensationBenchmarking.css */
+  color: #42be94; /* Light mode default */
+  transition: transform 0.3s ease;
+  transform: rotate(-90deg); /* Keeping original rotation for "▼" */
+}
+
+.expand-icon.expanded {
+  transform: rotate(0deg); /* Keeping original rotation for "▼" */
+}
+
+/* Dark mode for expand icon */
+.dark .expand-icon {
+  color: #4a6bff;
+}
+
+.section-content {
+  padding: 20px; /* Adjusted to match CompensationBenchmarking.css */
+  background: white; /* Light mode default */
+  animation: slideDown 0.3s ease-out; /* Keeping original animation */
+}
+
+/* Dark mode for section content */
+.dark .section-content {
+  background: #1e2023; /* Dark mode background */
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.overview-item {
+  background: #f8fffe; /* Light mode default */
+  border-radius: 8px; /* Adjusted to match CompensationBenchmarking.css */
+  padding: 16px; /* Adjusted to match CompensationBenchmarking.css */
+  border: 1px solid #e6f4ef; /* Light mode default */
+  text-align: center; /* Added to match CompensationBenchmarking.css */
+}
+
+/* Dark mode for overview item */
+.dark .overview-item {
+  background-color: #1a1c20;
+  border-color: #2d2f36;
+}
+
+.overview-label {
+  font-size: 12px;
+  font-weight: 500; /* Adjusted to match CompensationBenchmarking.css */
+  color: #666; /* Light mode default */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px; /* Adjusted to match CompensationBenchmarking.css */
+}
+
+/* Dark mode for overview label */
+.dark .overview-label {
+  color: #b0b0b0;
+}
+
+.overview-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+}
+
+/* Dark mode for overview value */
+.dark .overview-value {
+  color: #e0e0e0;
+}
+
+.company-description {
+  background: #f8fffe; /* Light mode default */
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e6f4ef; /* Light mode default */
+}
+
+/* Dark mode for company description */
+.dark .company-description {
+  background-color: #1a1c20;
+  border-color: #2d2f36;
+}
+
+.company-description h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6f4ef; /* Light mode default */
+}
+
+/* Dark mode for company description header */
+.dark .company-description h4 {
+  color: #e0e0e0;
+  border-bottom-color: #2d2f36;
+}
+
+.company-description p {
+  color: #666; /* Light mode default */
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Dark mode for company description text */
+.dark .company-description p {
+  color: #b0b0b0;
+}
+
+.ratings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.rating-card {
+  background: #f8fffe; /* Light mode default */
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e6f4ef; /* Light mode default */
+  transition: all 0.3s ease;
+}
+
+.rating-card:hover {
+  border-color: #42be94; /* Light mode default */
+  box-shadow: 0 4px 20px rgba(66, 190, 148, 0.15); /* Light mode default */
+}
+
+/* Dark mode for rating card */
+.dark .rating-card {
+  background-color: #1a1c20;
+  border-color: #2d2f36;
+}
+
+.dark .rating-card:hover {
+  border-color: #4a6bff;
+  box-shadow: 0 4px 20px rgba(74, 107, 255, 0.15);
+}
+
+.rating-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.platform-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+}
+
+/* Dark mode for platform name */
+.dark .platform-name {
+  color: #e0e0e0;
+}
+
+.rating-score {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rating-details {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: #666; /* Light mode default */
+}
+
+/* Dark mode for rating details */
+.dark .rating-details {
+  color: #b0b0b0;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.review-item {
+  background: #f8fffe; /* Light mode default */
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e6f4ef; /* Light mode default */
+}
+
+/* Dark mode for review item */
+.dark .review-item {
+  background-color: #1a1c20;
+  border-color: #2d2f36;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.review-meta {
+  flex: 1;
+}
+
+.review-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Dark mode for review title */
+.dark .review-title {
+  color: #e0e0e0;
+}
+
+.review-role {
+  font-size: 14px;
+  color: #666; /* Light mode default */
+  font-style: italic;
+}
+
+/* Dark mode for review role */
+.dark .review-role {
+  color: #b0b0b0;
+}
+
+.review-rating {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.review-content {
+  display: grid;
+  gap: 16px;
+}
+
+.review-section h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  margin: 0 0 8px 0;
+}
+
+/* Dark mode for review section header */
+.dark .review-section h5 {
+  color: #e0e0e0;
+}
+
+.review-section p {
+  color: #666; /* Light mode default */
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Dark mode for review section text */
+.dark .review-section p {
+  color: #b0b0b0;
+}
+
+.culture-section {
+  margin-bottom: 24px;
+}
+
+.culture-section:last-child {
+  margin-bottom: 0;
+}
+
+.culture-section h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6f4ef; /* Light mode default */
+}
+
+/* Dark mode for culture section header */
+.dark .culture-section h4 {
+  color: #e0e0e0;
+  border-bottom-color: #2d2f36;
+}
+
+.values-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.value-tag {
+  background: linear-gradient(
+    135deg,
+    #42be94 0%,
+    #30a080 100%
+  ); /* Adjusted for light mode */
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Dark mode for value tag */
+.dark .value-tag {
+  background: linear-gradient(135deg, #4a6bff 0%, #8a64ff 100%);
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.benefits-list li {
+  color: #666; /* Light mode default */
+  position: relative;
+  padding-left: 20px;
+}
+
+/* Dark mode for benefits list item */
+.dark .benefits-list li {
+  color: #b0b0b0;
+}
+
+.benefits-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #42be94;
+  font-weight: bold;
+}
+
+.culture-section p {
+  color: #666; /* Light mode default */
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Dark mode for culture section paragraph */
+.dark .culture-section p {
+  color: #b0b0b0;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.insight-item {
+  background: #f8fffe; /* Light mode default */
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e6f4ef; /* Light mode default */
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.insight-item:hover {
+  border-color: #42be94; /* Light mode default */
+  box-shadow: 0 4px 20px rgba(66, 190, 148, 0.15); /* Light mode default */
+}
+
+/* Dark mode for insight item */
+.dark .insight-item {
+  background-color: #1a1c20;
+  border-color: #2d2f36;
+}
+
+.dark .insight-item:hover {
+  border-color: #4a6bff;
+  box-shadow: 0 4px 20px rgba(74, 107, 255, 0.15);
+}
+
+.insight-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  color: #42be94; /* Light mode default */
+}
+
+/* Dark mode for insight icon */
+.dark .insight-icon {
+  color: #4a6bff;
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  margin-bottom: 8px;
+}
+
+/* Dark mode for insight title */
+.dark .insight-title {
+  color: #e0e0e0;
+}
+
+.insight-description {
+  color: #666; /* Light mode default */
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* Dark mode for insight description */
+.dark .insight-description {
+  color: #b0b0b0;
+}
+
+.company-footer {
+  padding: 24px 32px;
+  background: #f8fffe; /* Light mode default */
+  border-top: 1px solid #e6f4ef; /* Light mode default */
+  text-align: center;
+}
+
+/* Dark mode for company footer */
+.dark .company-footer {
+  background: #1a1c20;
+  border-top-color: #2d2f36;
+}
+
+.regenerate-button {
+  background: linear-gradient(
+    135deg,
+    #42be94 0%,
+    #30a080 100%
+  ); /* Adjusted for light mode */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(66, 190, 148, 0.3); /* Adjusted for light mode */
+}
+
+.regenerate-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(66, 190, 148, 0.4); /* Adjusted for light mode */
+}
+
+.regenerate-button:active {
+  transform: translateY(0);
+}
+
+/* Dark mode for regenerate button */
+.dark .regenerate-button {
+  background: linear-gradient(135deg, #4a6bff 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(74, 107, 255, 0.3);
+}
+
+.dark .regenerate-button:hover {
+  box-shadow: 0 6px 20px rgba(74, 107, 255, 0.4);
+}
+
+/* Loading, Error, and Placeholder States */
+.company-placeholder,
+.company-loading,
+.company-error {
+  padding: 60px 32px;
+  text-align: center;
+  background: #f8fffe; /* Light mode default */
+}
+
+/* Dark mode for placeholder, loading, error states */
+.dark .company-placeholder,
+.dark .company-loading,
+.dark .company-error {
+  background: #1a1c20;
+}
+
+.placeholder-icon,
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+  color: #42be94; /* Light mode default */
+}
+
+/* Dark mode for placeholder/error icon */
+.dark .placeholder-icon,
+.dark .error-icon {
+  color: #4a6bff;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e6f4ef; /* Light mode default */
+  border-top: 4px solid #42be94; /* Light mode default */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px auto;
+}
+
+/* Dark mode for loading spinner */
+.dark .loading-spinner {
+  border: 4px solid #2d2f36;
+  border-top: 4px solid #4a6bff;
+}
+
+.company-placeholder h3,
+.company-loading h3,
+.company-error h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333; /* Light mode default */
+  margin: 0 0 8px 0;
+}
+
+/* Dark mode for placeholder/loading/error titles */
+.dark .company-placeholder h3,
+.dark .company-loading h3,
+.dark .company-error h3 {
+  color: #e0e0e0;
+}
+
+.company-placeholder p,
+.company-loading p,
+.company-error p {
+  color: #666; /* Light mode default */
+  font-size: 16px;
+  margin: 0 0 20px 0;
+}
+
+/* Dark mode for placeholder/loading/error paragraphs */
+.dark .company-placeholder p,
+.dark .company-loading p,
+.dark .company-error p {
+  color: #b0b0b0;
+}
+
+.retry-button {
+  background: linear-gradient(
+    135deg,
+    #42be94 0%,
+    #30a080 100%
+  ); /* Adjusted for light mode */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(66, 190, 148, 0.3); /* Adjusted for light mode */
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(66, 190, 148, 0.4); /* Adjusted for light mode */
+}
+
+/* Dark mode for retry button */
+.dark .retry-button {
+  background: linear-gradient(135deg, #4a6bff 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(74, 107, 255, 0.3);
+}
+
+/* Animations */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .company-header {
+    padding: 24px 20px;
+  }
+
+  .company-header h2 {
+    font-size: 24px;
+  }
+
+  .company-stats {
+    gap: 12px;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+  }
+
+  .section-content {
+    padding: 0 20px 20px 20px;
+  }
+
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ratings-grid,
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .company-footer {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .company-header {
+    padding: 20px 16px;
+  }
+
+  .section-header {
+    padding: 12px 16px;
+  }
+
+  .section-content {
+    padding: 0 16px 16px 16px;
+  }
+
+  .section-header h3 {
+    font-size: 16px;
+  }
+
+  .company-header h2 {
+    font-size: 20px;
+  }
+
+  .company-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+}

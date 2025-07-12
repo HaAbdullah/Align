@@ -1,0 +1,160 @@
+/* Base styles */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #ffffff;
+  color: #111827;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark mode styles */
+.dark body {
+  background-color: #111827; /* Dark gray instead of pure black */
+  color: #f0f0f0;
+}
+
+/* JobFit hero section layout */
+.jobfit-hero-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 0px 20px;
+  gap: 30px;
+  margin-top: 55px;
+}
+
+/* Content container (left side) */
+.jobfit-content {
+  flex: 1;
+  text-align: left;
+  max-width: 600px;
+}
+
+/* Image container (right side) */
+.jobfit-image {
+  flex: 1.2; /* Increased for more width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.jobfit-image img {
+  width: 100%; /* Use full width of container */
+  max-width: 650px; /* Increased max width for wider image */
+  height: auto; /* Maintain aspect ratio */
+  min-height: 450px; /* Increased minimum height for taller image */
+  object-fit: cover; /* Cover the area while maintaining aspect ratio */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.jobfit-tagline {
+  color: #fd7535;
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+/* Dark mode image styling */
+.dark .jobfit-image img {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Main title */
+.jobfit-title {
+  font-size: 320%;
+  font-weight: 700;
+  color: #074b3c; /* Dark green */
+  line-height: 1.2;
+  margin-top: 1%;
+  margin-bottom: 1%;
+  transition: color 0.3s;
+}
+
+/* Dark mode title */
+.dark .jobfit-title {
+  background: linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: color 0.3s;
+}
+
+/* Highlight text */
+.jobfit-highlight {
+  color: #67e9a4;
+  transition: color 0.3s;
+}
+
+.dark .jobfit-highlight {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  border-bottom: 3px solid #4e6aff; /* thinner underline */
+}
+
+/* Description text */
+.jobfit-description {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #1a1a1a;
+  margin-top: 10px;
+  transition: color 0.3s;
+}
+
+/* Dark mode description */
+.dark .jobfit-description {
+  color: #e0e0e0;
+}
+
+.jobfit-signup-button {
+  display: inline-block;
+  background-color: #074b3c;
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 9999px; /* fully rounded */
+  margin-top: 20px;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+  box-shadow: 0 4px 8px rgba(7, 75, 60, 0.2);
+}
+
+.jobfit-signup-button:hover {
+  background-color: #063f33;
+  transform: translateY(-2px);
+}
+
+/* Dark mode */
+.dark .jobfit-signup-button {
+  background: linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.dark .jobfit-signup-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .jobfit-hero-section {
+    flex-direction: column;
+  }
+
+  .jobfit-content {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .jobfit-title {
+    font-size: 250%;
+  }
+
+  .jobfit-image img {
+    max-width: 100%;
+    min-height: 300px; /* Smaller min-height on mobile */
+  }
+}

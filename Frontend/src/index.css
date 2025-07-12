@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+
+/* --- Custom Styles (scoped with classes to avoid conflicts) --- */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove the problematic body styling */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  /* Removed display: flex and place-items: center */
+}
+
+/* Scope your custom styles with classes */
+.custom-heading {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+.custom-button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+/* Remove global link styling that conflicts with Tailwind */
+/* Instead, create a custom class for non-navigation links if needed */
+.custom-link {
+  color: #646cff;
+  text-decoration: inherit;
+}
+.custom-link:hover {
+  color: #535bf2;
+}
+
+/* Keep the light/dark mode but make it more specific */
+@media (prefers-color-scheme: light) {
+  /* No global color/background changes that would affect navigation */
+  .custom-link:hover {
+    color: #747bff;
+  }
+
+  .custom-button {
+    background-color: #f9f9f9;
+  }
+}
+
+@tailwind utilities;
