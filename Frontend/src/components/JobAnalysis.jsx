@@ -37,14 +37,104 @@ function JobAnalysis({
   const [activeDocument, setActiveDocument] = useState(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
+  // Replace your current handleSendMessage function with this one:
 
-  // Handler for chat feedback
+  // Handler for chat feedback - FIXED VERSION
   const handleSendMessage = async (feedbackPrompt) => {
     try {
-      const response = await sendChatFeedbackToClaude(feedbackPrompt);
+      let response;
+
+      // Route to the correct endpoint based on active document
+      if (activeDocument === "resume") {
+        // Call resume endpoint for resume feedback
+        response = await sendResumeFeedbackToClaude(feedbackPrompt);
+      } else if (activeDocument === "coverLetter") {
+        // Call cover letter endpoint for cover letter feedback
+        response = await sendCoverLetterFeedbackToClaude(feedbackPrompt);
+      } else {
+        throw new Error("No active document selected");
+      }
+
       return response.content[0].text;
     } catch (error) {
       console.error("Error sending chat feedback:", error);
+      throw error;
+    }
+  };
+
+  // Add these two new functions to handle the different endpoints:
+
+  const sendResumeFeedbackToClaude = async (prompt) => {
+    try {
+      console.log(
+        "Sending resume feedback to Claude API, length:",
+        prompt.length
+      );
+      const isLocalhost = window.location.hostname === "localhost";
+
+      const API_BASE_URL = isLocalhost
+        ? "http://localhost:3000/api"
+        : "https://jobfit-backend-29ai.onrender.com/api";
+
+      const response = await fetch(`${API_BASE_URL}/create-resume`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobDescription: prompt,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Resume feedback API request failed (${response.status}): ${errorText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error calling Claude API for resume feedback:", error);
+      throw error;
+    }
+  };
+
+  const sendCoverLetterFeedbackToClaude = async (prompt) => {
+    try {
+      console.log(
+        "Sending cover letter feedback to Claude API, length:",
+        prompt.length
+      );
+      const isLocalhost = window.location.hostname === "localhost";
+
+      const API_BASE_URL = isLocalhost
+        ? "http://localhost:3000/api"
+        : "https://jobfit-backend-29ai.onrender.com/api";
+
+      const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobDescription: prompt,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Cover letter feedback API request failed (${response.status}): ${errorText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(
+        "Error calling Claude API for cover letter feedback:",
+        error
+      );
       throw error;
     }
   };
@@ -361,7 +451,15 @@ function JobAnalysis({
       {/* Loading Spinner */}
       {(isLoading || generatingCoverLetter) && (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-12 h-12 border-4 border-gray-600 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+          <div
+            className="w-12 h-12 rounded-full animate-spin mb-4"
+            style={{
+              border: "4px solid rgba(255, 255, 255, 0.1)",
+              borderLeftColor: "transparent",
+              borderImage:
+                "linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88) 1",
+            }}
+          ></div>
           <p className="text-gray-300 text-lg">
             Generating {isLoading ? "resume" : "cover letter"}...
           </p>

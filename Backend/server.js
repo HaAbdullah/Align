@@ -424,7 +424,6 @@ app.post("/api/cancel-subscription", async (req, res) => {
 });
 
 //---------------- RESUME AND COVER LETTER GENERATION END POINTS --------------- //
-
 // Load instruction files
 const resumeSystemPrompt = fs.readFileSync("./Resume-Instructions.txt", "utf8");
 const coverLetterSystemPrompt = fs.readFileSync(
@@ -432,25 +431,47 @@ const coverLetterSystemPrompt = fs.readFileSync(
   "utf8"
 );
 
-// Chat feedback system prompt for focused document regeneration
-const chatFeedbackPrompt = `
-You are a professional resume and cover letter writer. You're receiving user feedback to improve their document. 
+// Separate feedback system prompts for each document type
+const resumeFeedbackPrompt = `
+You are a professional resume writer. You're receiving user feedback to improve their resume document. 
 The user will provide:
 1. Their resume
 2. A job description
-3. The current version of their document (resume or cover letter)
+3. The current version of their resume
 4. Their feedback on how to improve it
 
-Your task is to carefully analyze the feedback and regenerate the document incorporating the user's suggestions.
-Only output the complete HTML document with CSS styling - no explanations or surrounding text.
+Your task is to carefully analyze the feedback and regenerate the RESUME incorporating the user's suggestions.
+Only output the complete HTML resume document with CSS styling - no explanations or surrounding text.
 
 Remember to:
 - Preserve the professional formatting and style
 - Implement ALL the user's requested changes
 - Maintain the overall structure while improving the content
-- Make sure the document remains tailored to the specific job description
+- Make sure the resume remains tailored to the specific job description
+- ALWAYS return a RESUME, never a cover letter
 
-The output should be a complete, standalone HTML document ready for display.
+The output should be a complete, standalone HTML resume document ready for display.
+`;
+
+const coverLetterFeedbackPrompt = `
+You are a professional cover letter writer. You're receiving user feedback to improve their cover letter document. 
+The user will provide:
+1. Their resume
+2. A job description
+3. The current version of their cover letter
+4. Their feedback on how to improve it
+
+Your task is to carefully analyze the feedback and regenerate the COVER LETTER incorporating the user's suggestions.
+Only output the complete HTML cover letter document with CSS styling - no explanations or surrounding text.
+
+Remember to:
+- Preserve the professional formatting and style
+- Implement ALL the user's requested changes
+- Maintain the overall structure while improving the content
+- Make sure the cover letter remains tailored to the specific job description
+- ALWAYS return a COVER LETTER, never a resume
+
+The output should be a complete, standalone HTML cover letter document ready for display.
 `;
 
 // Question generation system prompt
@@ -518,9 +539,9 @@ app.post("/api/create-resume", async (req, res) => {
       jobDescription.includes("USER FEEDBACK") &&
       jobDescription.includes("CURRENT RESUME");
 
-    // Use the appropriate system prompt
+    // Use the appropriate system prompt - FIXED: Use resume-specific feedback prompt
     const systemPrompt = isFeedbackRequest
-      ? chatFeedbackPrompt
+      ? resumeFeedbackPrompt
       : resumeSystemPrompt;
 
     // Call Claude API with the combined job description and resume
@@ -588,9 +609,9 @@ app.post("/api/create-cover-letter", async (req, res) => {
       jobDescription.includes("USER FEEDBACK") &&
       jobDescription.includes("CURRENT COVER LETTER");
 
-    // Use the appropriate system prompt
+    // Use the appropriate system prompt - FIXED: Use cover letter-specific feedback prompt
     const systemPrompt = isFeedbackRequest
-      ? chatFeedbackPrompt
+      ? coverLetterFeedbackPrompt
       : coverLetterSystemPrompt;
 
     // Call Claude API with the job description and resume for cover letter generation

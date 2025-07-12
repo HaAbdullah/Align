@@ -194,11 +194,11 @@ ${currentDocument}
 
         {/* Suggestion Chips */}
         {currentSuggestions.length > 0 && (
-          <div className="p-4 bg-gray-750 border-t border-gray-700">
+          <div className="p-4 bg-gray-750">
             <p className="text-gray-400 text-xs mb-3 font-medium">
               Quick suggestions:
             </p>
-            <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-3">
+            <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-6">
               {currentSuggestions.map((suggestion, index) => (
                 <button
                   key={index}
@@ -223,7 +223,7 @@ ${currentDocument}
       </div>
 
       {/* Input Area */}
-      <div className="bg-gray-800 border border-gray-700 border-t-0 rounded-b-xl p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-b-xl p-4">
         <div className="relative">
           {/* Gradient border background */}
           <div
