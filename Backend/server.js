@@ -845,7 +845,7 @@ app.post("/api/generate-compensation", async (req, res) => {
     const perplexityResponse = await axios.post(
       "https://api.perplexity.ai/chat/completions",
       {
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "sonar-pro",
         messages: [
           {
             role: "system",
@@ -999,7 +999,7 @@ Focus on providing accurate, recent information. If specific data is not availab
     const perplexityResponse = await axios.post(
       "https://api.perplexity.ai/chat/completions",
       {
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "sonar-pro",
         messages: [
           {
             role: "system",
@@ -1200,7 +1200,7 @@ Please analyze and identify ONLY the keywords that appear in BOTH the job descri
     const perplexityResponse = await axios.post(
       "https://api.perplexity.ai/chat/completions",
       {
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "sonar-pro",
         messages: [
           {
             role: "system",

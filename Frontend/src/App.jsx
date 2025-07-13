@@ -8,8 +8,7 @@ import Main from "./pages/Main";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
-import Why from "./pages/Why";
-import How from "./pages/How";
+import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Pricing from "./pages/Pricing";
 import Success from "./pages/Success";
@@ -52,8 +51,7 @@ function AppContent() {
         <Route path="/" element={<Main />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/why" element={<Why />} />
-        <Route path="/how" element={<How />} />
+        <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/pricing" element={<Pricing />} />

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { sendJobDescriptionForQuestions } from "../../utils/claudeAPI.js"; // Update with correct path
-import "../../styles/QuestionBank.css";
+import { sendJobDescriptionForQuestions } from "../../utils/claudeAPI.js";
 
 const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
   const [questions, setQuestions] = useState(null);
@@ -63,23 +62,38 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
       case "easy":
-        return "#42be94";
+        return "bg-emerald-500";
       case "medium":
-        return "#f39c12";
+        return "bg-yellow-500";
       case "hard":
-        return "#e74c3c";
+        return "bg-red-500";
       default:
-        return "#95a5a6";
+        return "bg-gray-500";
+    }
+  };
+
+  const getDifficultyTextColor = (difficulty) => {
+    switch (difficulty?.toLowerCase()) {
+      case "easy":
+        return "text-emerald-400";
+      case "medium":
+        return "text-yellow-400";
+      case "hard":
+        return "text-red-400";
+      default:
+        return "text-gray-400";
     }
   };
 
   if (!jobDescription || !jobDescription.trim()) {
     return (
-      <div className="question-bank-container">
-        <div className="question-bank-placeholder">
-          <div className="placeholder-icon">❓</div>
-          <h3>No Job Description Available</h3>
-          <p>
+      <div className="font-inter">
+        <div className="text-center py-16">
+          <div className="text-6xl mb-6">❓</div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            No Job Description Available
+          </h3>
+          <p className="text-gray-400">
             Please provide a job description to generate relevant interview
             questions.
           </p>
@@ -90,11 +104,23 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
 
   if (loading) {
     return (
-      <div className="question-bank-container">
-        <div className="question-bank-loading">
-          <div className="loading-spinner"></div>
-          <h3>Generating Interview Questions...</h3>
-          <p>Analyzing the job requirements to create tailored questions.</p>
+      <div className="font-inter">
+        <div className="text-center py-16">
+          <div
+            className="w-16 h-16 mx-auto mb-6 rounded-full animate-spin"
+            style={{
+              border: "4px solid rgba(255, 255, 255, 0.1)",
+              borderLeftColor: "transparent",
+              borderImage:
+                "linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88) 1",
+            }}
+          ></div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Generating Interview Questions...
+          </h3>
+          <p className="text-gray-400">
+            Analyzing the job requirements to create tailored questions.
+          </p>
         </div>
       </div>
     );
@@ -102,12 +128,17 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
 
   if (error) {
     return (
-      <div className="question-bank-container">
-        <div className="question-bank-error">
-          <div className="error-icon">⚠️</div>
-          <h3>Error Generating Questions</h3>
-          <p>{error}</p>
-          <button className="retry-button" onClick={fetchQuestions}>
+      <div className="font-inter">
+        <div className="text-center py-16">
+          <div className="text-6xl mb-6">⚠️</div>
+          <h3 className="text-xl font-semibold text-red-400 mb-2">
+            Error Generating Questions
+          </h3>
+          <p className="text-gray-400 mb-6">{error}</p>
+          <button
+            onClick={fetchQuestions}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
             Try Again
           </button>
         </div>
@@ -117,12 +148,19 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
 
   if (!questions || !questions.categories) {
     return (
-      <div className="question-bank-container">
-        <div className="question-bank-placeholder">
-          <div className="placeholder-icon">🤔</div>
-          <h3>No Questions Generated</h3>
-          <p>Unable to generate questions for this job description.</p>
-          <button className="retry-button" onClick={fetchQuestions}>
+      <div className="font-inter">
+        <div className="text-center py-16">
+          <div className="text-6xl mb-6">🤔</div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            No Questions Generated
+          </h3>
+          <p className="text-gray-400 mb-6">
+            Unable to generate questions for this job description.
+          </p>
+          <button
+            onClick={fetchQuestions}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
             Retry Generation
           </button>
         </div>
@@ -131,37 +169,53 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
   }
 
   return (
-    <div className="question-bank-container">
-      <div className="question-bank-header">
-        <h2>Interview Question Bank</h2>
-        <p>Tailored questions based on the job requirements</p>
-        <div className="question-stats">
-          <span className="stat">
+    <div className="font-inter space-y-6">
+      {/* Header */}
+      <div className="text-center pb-6 border-b border-slate-700/50">
+        <h2 className="text-2xl font-bold text-gray-100 mb-2">
+          Interview Question Bank
+        </h2>
+        <p className="text-gray-400 mb-4">
+          Tailored questions based on the job requirements
+        </p>
+        <div className="flex justify-center gap-6 flex-wrap">
+          <span className="bg-blue-500/20 text-blue-300 px-4 py-2 rounded-full text-sm font-medium">
             {questions.categories.reduce(
               (total, category) => total + category.questions.length,
               0
             )}{" "}
             Questions
           </span>
-          <span className="stat">{questions.categories.length} Categories</span>
+          <span className="bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm font-medium">
+            {questions.categories.length} Categories
+          </span>
         </div>
       </div>
 
-      <div className="categories-container">
+      {/* Categories */}
+      <div className="space-y-4">
         {questions.categories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="category-card">
+          <div
+            key={categoryIndex}
+            className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-xl overflow-hidden hover:border-slate-600/50 transition-all duration-300"
+          >
+            {/* Category Header */}
             <div
-              className="category-header"
+              className="flex items-center justify-between p-5 cursor-pointer bg-slate-800/20 hover:bg-slate-700/30 transition-all duration-300"
               onClick={() => toggleCategory(categoryIndex)}
             >
-              <h3>{category.name}</h3>
-              <div className="category-meta">
-                <span className="question-count">
+              <h3 className="text-lg font-semibold text-gray-200">
+                {category.name}
+              </h3>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-400 font-medium">
                   {category.questions.length} questions
                 </span>
                 <span
-                  className={`expand-icon ${
-                    expandedCategories.has(categoryIndex) ? "expanded" : ""
+                  className={`text-blue-400 transition-transform duration-300 ${
+                    expandedCategories.has(categoryIndex)
+                      ? "rotate-0"
+                      : "-rotate-90"
                   }`}
                 >
                   ▼
@@ -169,35 +223,39 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
               </div>
             </div>
 
+            {/* Questions List */}
             {expandedCategories.has(categoryIndex) && (
-              <div className="questions-list">
+              <div className="animate-fadeIn">
                 {category.questions.map((questionItem, questionIndex) => {
                   const questionId = `${categoryIndex}-${questionIndex}`;
                   const isExpanded = expandedQuestions.has(questionId);
 
                   return (
-                    <div key={questionIndex} className="question-item">
+                    <div
+                      key={questionIndex}
+                      className="border-t border-slate-700/30 hover:bg-slate-700/20 transition-all duration-200"
+                    >
+                      {/* Question Header */}
                       <div
-                        className="question-header"
+                        className="flex items-center justify-between p-5 cursor-pointer group"
                         onClick={() => toggleQuestion(questionId)}
                       >
-                        <span className="question-text">
+                        <span className="text-gray-300 font-medium leading-relaxed flex-1 mr-4 group-hover:text-gray-200 transition-colors">
                           {questionItem.question}
                         </span>
-                        <div className="question-controls">
+                        <div className="flex items-center gap-3 flex-shrink-0">
                           <span
-                            className="difficulty-badge"
-                            style={{
-                              backgroundColor: getDifficultyColor(
-                                questionItem.difficulty
-                              ),
-                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getDifficultyColor(
+                              questionItem.difficulty
+                            )} text-white`}
                           >
                             {questionItem.difficulty || "Medium"}
                           </span>
                           <span
-                            className={`question-expand-icon ${
-                              isExpanded ? "expanded" : ""
+                            className={`text-gray-400 transition-all duration-300 ${
+                              isExpanded
+                                ? "rotate-90 text-blue-400"
+                                : "rotate-0"
                             }`}
                           >
                             ➤
@@ -205,12 +263,20 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
                         </div>
                       </div>
 
+                      {/* Question Hint */}
                       {isExpanded && questionItem.hint && (
-                        <div className="question-hint">
-                          <div className="hint-label">
-                            💡 What they're looking for:
+                        <div className="px-5 pb-5 animate-fadeIn">
+                          <div className="bg-slate-700/40 rounded-lg p-4 border border-slate-600/30">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-lg">💡</span>
+                              <span className="text-sm font-semibold text-blue-400">
+                                What they're looking for:
+                              </span>
+                            </div>
+                            <p className="text-gray-300 leading-relaxed italic text-sm">
+                              {questionItem.hint}
+                            </p>
                           </div>
-                          <p>{questionItem.hint}</p>
                         </div>
                       )}
                     </div>
@@ -222,11 +288,32 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
         ))}
       </div>
 
-      <div className="question-bank-footer">
-        <button className="regenerate-button" onClick={fetchQuestions}>
+      {/* Footer */}
+      <div className="text-center pt-6 border-t border-slate-700/50">
+        <button
+          onClick={fetchQuestions}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
+        >
           🔄 Regenerate Questions
         </button>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };

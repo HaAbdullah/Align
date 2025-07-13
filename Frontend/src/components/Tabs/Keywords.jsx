@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { sendJobDescriptionForKeywords } from "../../utils/claudeAPI";
-import "../../styles/Keywords.css";
 
 const Keywords = ({ resume, jobDescription, analysisResults }) => {
   const [keywordsData, setKeywordsData] = useState(null);
@@ -66,51 +65,93 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
   const keywordsList = keywordsData ? parseKeywordsData(keywordsData) : [];
 
   return (
-    <div className="keywords-container">
-      <div className="keywords-header">
-        <h2>Keywords Analysis</h2>
-        <p>Matched keywords between job description and your resume</p>
+    <div className="font-inter">
+      {/* Header */}
+      <div className="text-center mb-8 pb-6 border-b border-slate-700/50">
+        <h2 className="text-2xl font-bold text-gray-100 mb-2">
+          Keywords Analysis
+        </h2>
+        <p className="text-gray-400">
+          Matched keywords between job description and your resume
+        </p>
       </div>
 
+      {/* Loading State */}
       {loading && (
-        <div className="keywords-loading">
-          <div className="loading-spinner"></div>
-          <h3>Analyzing Keywords</h3>
-          <p>Matching job description keywords with your resume...</p>
+        <div className="text-center py-16">
+          <div
+            className="w-16 h-16 mx-auto mb-6 rounded-full animate-spin"
+            style={{
+              border: "4px solid rgba(255, 255, 255, 0.1)",
+              borderLeftColor: "transparent",
+              borderImage:
+                "linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88) 1",
+            }}
+          ></div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Analyzing Keywords
+          </h3>
+          <p className="text-gray-400">
+            Matching job description keywords with your resume...
+          </p>
         </div>
       )}
 
+      {/* Error State */}
       {error && (
-        <div className="keywords-error">
-          <div className="error-icon">⚠️</div>
-          <h3>Error</h3>
-          <p>{error}</p>
-          <button onClick={generateKeywordsAnalysis} className="retry-button">
+        <div className="text-center py-16">
+          <div className="text-6xl mb-6">⚠️</div>
+          <h3 className="text-xl font-semibold text-red-400 mb-2">Error</h3>
+          <p className="text-gray-400 mb-6">{error}</p>
+          <button
+            onClick={generateKeywordsAnalysis}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
             Try Again
           </button>
         </div>
       )}
 
+      {/* Keywords Chart */}
       {keywordsList.length > 0 && !loading && (
-        <div className="keywords-chart">
-          <div className="chart-header">
-            <div className="header-keyword">Keyword</div>
-            <div className="header-analysis">Analysis</div>
+        <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-xl overflow-hidden">
+          {/* Chart Header */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+            <div className="px-6 py-4 border-b lg:border-b-0 lg:border-r border-white/20">
+              Keyword
+            </div>
+            <div className="px-6 py-4 lg:col-span-2">Analysis</div>
           </div>
+
+          {/* Chart Rows */}
           {keywordsList.map((item, index) => (
-            <div key={index} className="chart-row">
-              <div className="chart-keyword">{item.keyword}</div>
-              <div className="chart-analysis">{item.analysis}</div>
+            <div
+              key={index}
+              className="grid grid-cols-1 lg:grid-cols-3 border-b border-slate-700/30 last:border-b-0 hover:bg-slate-700/30 transition-all duration-200"
+            >
+              <div className="px-6 py-4 font-semibold text-blue-400 border-b lg:border-b-0 lg:border-r border-slate-700/30 flex items-center">
+                <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                  {item.keyword}
+                </span>
+              </div>
+              <div className="px-6 py-4 text-gray-300 text-sm leading-relaxed lg:col-span-2 flex items-center">
+                {item.analysis}
+              </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Placeholder State */}
       {!keywordsData && !loading && !error && (
-        <div className="keywords-placeholder">
-          <div className="placeholder-icon">🔍</div>
-          <h3>Keywords Analysis</h3>
-          <p>Keywords analysis will appear here once generated.</p>
+        <div className="text-center py-16">
+          <div className="text-6xl mb-6">🔍</div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Keywords Analysis
+          </h3>
+          <p className="text-gray-400">
+            Keywords analysis will appear here once generated.
+          </p>
         </div>
       )}
     </div>

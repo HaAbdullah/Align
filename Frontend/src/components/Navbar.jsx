@@ -127,7 +127,7 @@ const Navbar = () => {
           }`}
         >
           <div className="px-4 py-3 space-y-2">
-            {["/", "/Align", "/contact"].map((path, i) => (
+            {["/", "/about", "/contact"].map((path, i) => (
               <Link
                 key={path}
                 to={path}
@@ -196,7 +196,7 @@ const Navbar = () => {
               scrolled ? "space-x-7" : "space-x-8"
             }`}
           >
-            {["/", "/Align", "/contact"].map((path, i) => (
+            {["/", "/about", "/contact"].map((path, i) => (
               <Link
                 key={path}
                 to={path}
