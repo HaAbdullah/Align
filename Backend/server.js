@@ -24,6 +24,7 @@ app.use(
   })
 );
 
+app.use("/api/users", userRoutes);
 // Fix: Use STRIPE_SECRET_KEY instead of VITE_STRIPE_SECRET_KEY
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
@@ -1248,8 +1249,6 @@ Please analyze and identify ONLY the keywords that appear in BOTH the job descri
     });
   }
 });
-
-app.use("/api/users", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
