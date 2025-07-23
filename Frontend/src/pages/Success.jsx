@@ -8,8 +8,10 @@ const Success = () => {
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tierUpdated, setTierUpdated] = useState(false);
+  const [error, setError] = useState(null);
+
   const { currentUser } = useAuth();
-  const { upgradeTier } = useUsage();
+  const { updateSubscription } = useUsage(); // ← NEW: Use database function
 
   // Debug logging
   useEffect(() => {
@@ -20,30 +22,33 @@ const Success = () => {
 
   useEffect(() => {
     const initializeSuccess = async () => {
-      console.log("Initializing success page...");
+      console.log("🚀 Initializing success page...");
 
       // Get session_id from URL parameters
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get("session_id");
       const planFromUrl = urlParams.get("plan");
 
-      console.log("Session ID from URL:", sessionId);
-      console.log("Plan from URL:", planFromUrl);
+      console.log("📊 Session ID from URL:", sessionId);
+      console.log("📊 Plan from URL:", planFromUrl);
 
       if (sessionId) {
         await verifySession(sessionId);
       } else {
-        console.log("No session ID found, checking for plan info...");
+        console.log("⚠️ No session ID found, checking for plan info...");
 
         // Try to get plan info from URL or sessionStorage
         const planFromStorage = sessionStorage.getItem("selectedPlan");
-        console.log("Plan from storage:", planFromStorage);
+        console.log("📊 Plan from storage:", planFromStorage);
 
         if (planFromUrl || planFromStorage) {
-          console.log("Found plan info, updating tier...");
+          console.log("✅ Found plan info, updating tier...");
           await updateUserTier(planFromUrl || planFromStorage);
         } else {
-          console.log("No plan information found");
+          console.log("❌ No plan information found");
+          setError(
+            "No payment information found. Please try again or contact support."
+          );
         }
 
         setLoading(false);
@@ -51,17 +56,18 @@ const Success = () => {
     };
 
     initializeSuccess();
-  }, []); // Remove currentUser from deps to avoid infinite loops
+  }, []);
 
   // Separate effect to handle tier updates when user becomes available
   useEffect(() => {
     if (currentUser && sessionData?.planName && !tierUpdated) {
-      console.log("User available, updating tier with session data...");
+      console.log("👤 User available, updating tier with session data...");
       updateUserTier(sessionData.planName);
     }
   }, [currentUser, sessionData, tierUpdated]);
+
   const verifySession = async (sessionId) => {
-    console.log("Verifying session:", sessionId);
+    console.log("🔍 Verifying Stripe session:", sessionId);
 
     try {
       const response = await fetch(
@@ -77,69 +83,56 @@ const Success = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Session verification successful:", data);
-        console.log("Full response data:", JSON.stringify(data, null, 2)); // Add this line
+        console.log("✅ Session verification successful:", data);
+        console.log("📋 Full response data:", JSON.stringify(data, null, 2));
 
         setSessionData(data);
 
-        // Remove the immediate storage code - let the useEffect handle it
-        // The useEffect above will handle storage when currentUser is available
-
-        // Update the user's tier
+        // Update the user's tier if we have all the data
         if (data.planName && currentUser && !tierUpdated) {
-          console.log("Updating tier immediately with session data...");
-          await updateUserTier(data.planName);
+          console.log("🔄 Updating tier immediately with session data...");
+          await updateUserTier(
+            data.planName,
+            data.customer_id,
+            data.subscription_id
+          );
         }
       } else {
-        console.error("Session verification failed:", response.status);
+        console.error("❌ Session verification failed:", response.status);
         const errorText = await response.text();
         console.error("Error response:", errorText);
+        setError("Payment verification failed. Please contact support.");
         throw new Error("Session verification failed");
       }
     } catch (error) {
-      console.error("Error verifying session:", error);
+      console.error("❌ Error verifying session:", error);
+      setError("Unable to verify payment. Please contact support.");
     } finally {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    if (currentUser && sessionData) {
-      console.log("User now available, storing subscription data...");
 
-      // Store customer ID if available
-      if (sessionData.customer_id) {
-        localStorage.setItem(
-          `stripe_customer_${currentUser.uid}`,
-          sessionData.customer_id
-        );
-        console.log("✅ Stored customer ID:", sessionData.customer_id);
-      }
-
-      // Store subscription ID if available
-      if (sessionData.subscription_id) {
-        localStorage.setItem(
-          `stripe_subscription_${currentUser.uid}`,
-          sessionData.subscription_id
-        );
-        console.log("✅ Stored subscription ID:", sessionData.subscription_id);
-      } else {
-        console.warn("⚠️ No subscription_id in session data");
-      }
-    }
-  }, [currentUser, sessionData]);
-  // Updated function to update the user's tier
-  const updateUserTier = async (planName) => {
-    console.log("updateUserTier called with:", planName);
-    console.log("Current user:", currentUser);
-    console.log("Tier already updated:", tierUpdated);
+  // NEW: Updated function using database instead of localStorage
+  const updateUserTier = async (
+    planName,
+    customerId = null,
+    subscriptionId = null
+  ) => {
+    console.log("🔄 updateUserTier called with:", {
+      planName,
+      customerId,
+      subscriptionId,
+    });
+    console.log("👤 Current user:", currentUser?.uid);
+    console.log("✅ Tier already updated:", tierUpdated);
 
     if (!currentUser) {
-      console.log("No current user available, cannot update tier");
+      console.log("⚠️ No current user available, cannot update tier");
       return;
     }
 
     if (tierUpdated) {
-      console.log("Tier already updated, skipping");
+      console.log("✅ Tier already updated, skipping");
       return;
     }
 
@@ -151,27 +144,39 @@ const Success = () => {
     };
 
     const tierKey = planToTier[planName];
-    console.log("Mapped tier key:", tierKey);
+    console.log("🎯 Mapped tier key:", tierKey);
 
     if (tierKey) {
       try {
-        console.log(`Upgrading user ${currentUser.uid} to ${tierKey} tier`);
+        console.log(
+          `🔄 Upgrading user ${currentUser.uid} to ${tierKey} tier via DATABASE`
+        );
 
-        // Call the upgradeTier function
-        await upgradeTier(tierKey);
+        // NEW: Use database API instead of localStorage
+        await updateSubscription(
+          tierKey,
+          customerId || sessionData?.customer_id,
+          subscriptionId || sessionData?.subscription_id
+        );
 
         setTierUpdated(true);
 
         // Clear any stored plan selection
         sessionStorage.removeItem("selectedPlan");
+        sessionStorage.removeItem("selectedBillingCycle");
 
-        console.log("Tier updated successfully!");
+        console.log("✅ Tier updated successfully in database!");
+
+        // REMOVE: No more localStorage usage
+        // localStorage.setItem() calls are gone!
       } catch (error) {
-        console.error("Error updating tier:", error);
+        console.error("❌ Error updating tier:", error);
+        setError("Failed to update your subscription. Please contact support.");
       }
     } else {
-      console.warn("Unknown plan name:", planName);
-      console.log("Available plan mappings:", Object.keys(planToTier));
+      console.warn("⚠️ Unknown plan name:", planName);
+      console.log("📋 Available plan mappings:", Object.keys(planToTier));
+      setError(`Unknown subscription plan: ${planName}`);
     }
   };
 
@@ -180,8 +185,8 @@ const Success = () => {
   };
 
   const handleDownloadReceipt = () => {
-    // Implement receipt download logic
-    console.log("Download receipt");
+    // TODO: Implement receipt download logic
+    console.log("📄 Download receipt (not implemented yet)");
   };
 
   if (loading) {
@@ -193,6 +198,32 @@ const Success = () => {
       >
         <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 w-full h-full flex items-center justify-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-700 dark:border-emerald-400"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          darkMode ? "dark" : ""
+        }`}
+      >
+        <div className="bg-gradient-to-br from-red-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-red-900 w-full h-full flex items-center justify-center">
+          <div className="max-w-md mx-auto text-center p-8">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Payment Issue
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+            <button
+              onClick={() => (window.location.href = "/pricing")}
+              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700"
+            >
+              Return to Pricing
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -217,36 +248,11 @@ const Success = () => {
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
               Welcome to{" "}
               <span className="text-green-700 dark:text-emerald-400 font-semibold">
-                JobFitt.Ai
+                Align
               </span>
               ! Your subscription is now active and you're ready to accelerate
               your job search.
             </p>
-
-            {/* Debug Info (remove in production) */}
-            {/* {process.env.NODE_ENV === "development" && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 mb-6 border border-yellow-200 dark:border-yellow-800 text-left">
-                <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-2">
-                  Debug Info:
-                </h4>
-                <pre className="text-xs text-yellow-700 dark:text-yellow-400">
-                  {JSON.stringify(
-                    {
-                      currentUser: currentUser
-                        ? { uid: currentUser.uid }
-                        : null,
-                      sessionData,
-                      tierUpdated,
-                      urlParams: Object.fromEntries(
-                        new URLSearchParams(window.location.search)
-                      ),
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
-            )} */}
 
             {/* Tier Update Confirmation */}
             {tierUpdated && (
@@ -283,7 +289,7 @@ const Success = () => {
                     </li>
                     <li className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                      Start optimizing for ATS
+                      Start generating optimized resumes
                     </li>
                     <li className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
@@ -299,11 +305,11 @@ const Success = () => {
                   <ul className="space-y-2 text-gray-700 dark:text-gray-300">
                     <li className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                      ATS-optimized resumes
+                      AI-optimized resumes
                     </li>
                     <li className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                      AI interview coaching
+                      Unlimited generations
                     </li>
                     <li className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
@@ -311,7 +317,7 @@ const Success = () => {
                     </li>
                     <li className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                      Salary benchmarking
+                      Interview question bank
                     </li>
                   </ul>
                 </div>
@@ -348,7 +354,7 @@ const Success = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
-                  href="mailto:support@jobfitt.ai"
+                  href="mailto:support@align.com"
                   className="text-green-700 dark:text-emerald-400 hover:text-green-800 dark:hover:text-emerald-300 font-medium underline"
                 >
                   Contact Support

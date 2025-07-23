@@ -249,7 +249,17 @@ const PricingPage = () => {
     if (monthlyYearly === 0 || yearlyPrice === 0) return 0;
     return Math.round(((monthlyYearly - yearlyPrice) / monthlyYearly) * 100);
   };
+  // You already have this line at the top, so just add the console.logs
+  console.log("Current user object:", currentUser);
+  console.log("Is user logged in?", !!currentUser);
 
+  if (currentUser) {
+    console.log("Firebase UID:", currentUser.uid);
+    console.log("Email:", currentUser.email);
+    console.log("Display Name:", currentUser.displayName);
+  } else {
+    console.log("User is not logged in");
+  }
   return (
     <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
       <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 transition-all duration-300">
@@ -259,7 +269,7 @@ const PricingPage = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Choose Your{" "}
               <span className="text-green-700 dark:text-emerald-400">
-                JobFitt.AI
+                Align
               </span>{" "}
               Plan
             </h1>

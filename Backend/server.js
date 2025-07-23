@@ -1,11 +1,12 @@
+require("dotenv").config();
 const fs = require("fs");
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
-require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const userRoutes = require("./routes/users");
 
 // Middleware
 app.use(express.json());
@@ -1247,6 +1248,8 @@ Please analyze and identify ONLY the keywords that appear in BOTH the job descri
     });
   }
 });
+
+app.use("/api/users", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -1,31 +1,33 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import {
-  getAuth,
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
+import { auth } from "../firebase/firebase"; // ← Import YOUR initialized auth
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const auth = getAuth();
+  // Remove this line: const auth = getAuth();
 
   // Check if user is logged in from Firebase on app start
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("🔥 Auth state changed:", user ? "Logged in" : "Logged out");
+      console.log("User object:", user);
       setCurrentUser(user);
       setLoading(false);
     });
 
     // Cleanup subscription on unmount
     return unsubscribe;
-  }, [auth]);
+  }, []); // Remove [auth] dependency since auth is now imported
 
-  // Function to login with Google
+  // Rest of your code stays the same...
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -37,7 +39,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Function to logout a user
   const logout = async () => {
     try {
       await signOut(auth);
@@ -58,7 +59,6 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
   return useContext(AuthContext);
 };
