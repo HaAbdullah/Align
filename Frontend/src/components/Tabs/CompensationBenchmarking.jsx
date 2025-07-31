@@ -5,21 +5,46 @@ const CompensationBenchmarking = ({
   resume,
   jobDescription,
   analysisResults,
+  cachedData,
+  loading: parentLoading,
+  error: parentError,
+  isDataFresh,
+  updateCache,
+  forceRefresh,
 }) => {
-  const [compensationData, setCompensationData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // Use cached data if available, otherwise use local state
+  const [compensationData, setCompensationData] = useState(cachedData || null);
+  const [loading, setLoading] = useState(parentLoading || false);
+  const [error, setError] = useState(parentError || null);
   const [expandedSections, setExpandedSections] = useState(
     new Set(["overview"])
   );
 
+  // Sync with cached data when it changes
   useEffect(() => {
-    if (jobDescription && jobDescription.trim()) {
+    if (cachedData) {
+      setCompensationData(cachedData);
+      setLoading(false);
+      setError(null);
+    }
+  }, [cachedData]);
+
+  // Sync loading and error states with parent
+  useEffect(() => {
+    setLoading(parentLoading || false);
+    setError(parentError || null);
+  }, [parentLoading, parentError]);
+
+  // Fetch data when component mounts if no cache exists
+  useEffect(() => {
+    if (jobDescription && jobDescription.trim() && !cachedData && !loading) {
       fetchCompensationData();
     }
-  }, [jobDescription]);
+  }, [jobDescription, cachedData, loading]);
 
   const fetchCompensationData = async () => {
+    // Update parent cache state
+    updateCache({ loading: true, error: null });
     setLoading(true);
     setError(null);
 
@@ -33,15 +58,36 @@ const CompensationBenchmarking = ({
       const parsedData = JSON.parse(content);
       setCompensationData(parsedData);
 
+      // Update parent cache with successful data
+      updateCache({
+        data: parsedData,
+        loading: false,
+        error: null,
+      });
+
       setExpandedSections(new Set(["overview"]));
     } catch (err) {
       console.error("Error fetching compensation data:", err);
-      setError(
-        "Failed to generate compensation benchmarking data. Please try again."
-      );
+      const errorMessage =
+        "Failed to generate compensation benchmarking data. Please try again.";
+
+      setError(errorMessage);
+
+      // Update parent cache with error
+      updateCache({
+        loading: false,
+        error: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = () => {
+    // Force refresh by clearing cache and fetching new data
+    forceRefresh();
+    setCompensationData(null);
+    fetchCompensationData();
   };
 
   const toggleSection = (sectionId) => {
@@ -110,7 +156,9 @@ const CompensationBenchmarking = ({
             }}
           ></div>
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
-            Analyzing Compensation Data...
+            {cachedData
+              ? "Refreshing Compensation Data..."
+              : "Analyzing Compensation Data..."}
           </h3>
           <p className="text-gray-400">
             Gathering salary ranges and market insights for this role.
@@ -166,9 +214,11 @@ const CompensationBenchmarking = ({
     <div className="font-inter space-y-6">
       {/* Header */}
       <div className="text-center pb-6 border-b border-slate-700/50">
-        <h2 className="text-2xl font-bold text-gray-100 mb-2">
-          Compensation Benchmarking
-        </h2>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h2 className="text-2xl font-bold text-gray-100">
+            Compensation Benchmarking
+          </h2>
+        </div>
         <p className="text-gray-400 mb-4">
           Market salary data and insights for this position
         </p>
@@ -423,7 +473,7 @@ const CompensationBenchmarking = ({
       {/* Footer */}
       <div className="text-center pt-6 border-t border-slate-700/50">
         <button
-          onClick={fetchCompensationData}
+          onClick={handleRefresh}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
         >
           🔄 Refresh Data

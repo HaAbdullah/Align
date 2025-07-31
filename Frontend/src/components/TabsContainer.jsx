@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useUsage } from "../context/UsageContext";
@@ -18,6 +18,109 @@ const TabsContainer = ({
   const { userTier, goToPricing } = useUsage();
   const navigate = useNavigate();
 
+  // Cache state for each tab's data
+  const [tabCache, setTabCache] = useState({
+    keywords: {
+      data: null,
+      loading: false,
+      error: null,
+      lastFetched: null,
+    },
+    companyInsights: {
+      data: null,
+      loading: false,
+      error: null,
+      lastFetched: null,
+    },
+    questionBank: {
+      data: null,
+      loading: false,
+      error: null,
+      lastFetched: null,
+    },
+    compensationBenchmarking: {
+      data: null,
+      loading: false,
+      error: null,
+      lastFetched: null,
+    },
+  });
+
+  // Create a cache key based on resume and job description content
+  const cacheKey = useMemo(() => {
+    if (!resume || !jobDescription) return null;
+
+    // Create a simple hash of the content to detect changes
+    const contentHash = btoa((resume + jobDescription).slice(0, 100))
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .slice(0, 10);
+
+    return contentHash;
+  }, [resume, jobDescription]);
+
+  // Clear cache when resume or job description changes
+  useEffect(() => {
+    if (cacheKey) {
+      const lastCacheKey = localStorage.getItem("tabsCacheKey");
+
+      if (lastCacheKey !== cacheKey) {
+        // Content has changed, clear cache
+        setTabCache({
+          keywords: {
+            data: null,
+            loading: false,
+            error: null,
+            lastFetched: null,
+          },
+          companyInsights: {
+            data: null,
+            loading: false,
+            error: null,
+            lastFetched: null,
+          },
+          questionBank: {
+            data: null,
+            loading: false,
+            error: null,
+            lastFetched: null,
+          },
+          compensationBenchmarking: {
+            data: null,
+            loading: false,
+            error: null,
+            lastFetched: null,
+          },
+        });
+
+        localStorage.setItem("tabsCacheKey", cacheKey);
+      }
+    }
+  }, [cacheKey]);
+
+  // Generic cache update function
+  const updateTabCache = useCallback((tabId, updates) => {
+    setTabCache((prev) => ({
+      ...prev,
+      [tabId]: {
+        ...prev[tabId],
+        ...updates,
+        lastFetched: updates.data ? Date.now() : prev[tabId].lastFetched,
+      },
+    }));
+  }, []);
+
+  // Check if data is still fresh (within 5 minutes)
+  const isDataFresh = useCallback(
+    (tabId) => {
+      const tabData = tabCache[tabId];
+      if (!tabData.data || !tabData.lastFetched) return false;
+
+      const fiveMinutes = 5 * 60 * 1000;
+      return Date.now() - tabData.lastFetched < fiveMinutes;
+    },
+    [tabCache]
+  );
+
   const tabs = [
     { id: "keywords", label: "Keywords", requiredTier: null },
     { id: "companyInsights", label: "Company Insights", requiredTier: null },
@@ -30,13 +133,9 @@ const TabsContainer = ({
   ];
 
   const canAccessTab = (tab) => {
-    // Unauthenticated users can't access any tabs
     if (!currentUser) return false;
-
-    // If no tier requirement, everyone can access
     if (!tab.requiredTier) return true;
 
-    // Check if user's tier meets requirement
     const tierHierarchy = {
       FREEMIUM: 0,
       BASIC: 1,
@@ -47,19 +146,15 @@ const TabsContainer = ({
     return tierHierarchy[userTier] >= tierHierarchy[tab.requiredTier];
   };
 
-  // Function to get the first accessible tab
   const getFirstAccessibleTab = () => {
     const accessibleTab = tabs.find((tab) => canAccessTab(tab));
-    return accessibleTab ? accessibleTab.id : tabs[0].id; // Fallback to first tab
+    return accessibleTab ? accessibleTab.id : tabs[0].id;
   };
 
-  // Initialize activeTab with the first accessible tab
   const [activeTab, setActiveTab] = useState(() => getFirstAccessibleTab());
 
-  // Update active tab when user authentication or tier changes
   useEffect(() => {
     const firstAccessibleTab = getFirstAccessibleTab();
-    // If current active tab is not accessible, switch to first accessible tab
     const currentTabAccessible =
       tabs.find((tab) => tab.id === activeTab) &&
       canAccessTab(tabs.find((tab) => tab.id === activeTab));
@@ -73,15 +168,26 @@ const TabsContainer = ({
     if (canAccessTab(tab)) {
       setActiveTab(tab.id);
     } else {
-      // Show upgrade modal or redirect to pricing
       goToPricing();
     }
   };
 
+  // Force refresh function for manual refresh buttons
+  const forceRefreshTab = useCallback(
+    (tabId) => {
+      updateTabCache(tabId, {
+        data: null,
+        loading: false,
+        error: null,
+        lastFetched: null,
+      });
+    },
+    [updateTabCache]
+  );
+
   const renderTabContent = () => {
     const currentTab = tabs.find((tab) => tab.id === activeTab);
 
-    // Show overlay if user can't access the current tab
     if (!canAccessTab(currentTab)) {
       return (
         <div className="relative min-h-80 flex items-center justify-center bg-slate-900/30 backdrop-blur-md rounded-xl border border-slate-700/50">
@@ -123,51 +229,33 @@ const TabsContainer = ({
       );
     }
 
+    // Pass cache data and update functions to each component
+    const commonProps = {
+      resume,
+      jobDescription,
+      analysisResults,
+      cachedData: tabCache[activeTab]?.data,
+      loading: tabCache[activeTab]?.loading,
+      error: tabCache[activeTab]?.error,
+      isDataFresh: isDataFresh(activeTab),
+      updateCache: (updates) => updateTabCache(activeTab, updates),
+      forceRefresh: () => forceRefreshTab(activeTab),
+    };
+
     switch (activeTab) {
       case "keywords":
-        return (
-          <Keywords
-            resume={resume}
-            jobDescription={jobDescription}
-            analysisResults={analysisResults}
-          />
-        );
+        return <Keywords {...commonProps} />;
       case "companyInsights":
-        return (
-          <CompanyInsights
-            resume={resume}
-            jobDescription={jobDescription}
-            analysisResults={analysisResults}
-          />
-        );
+        return <CompanyInsights {...commonProps} />;
       case "questionBank":
-        return (
-          <QuestionBank
-            resume={resume}
-            jobDescription={jobDescription}
-            analysisResults={analysisResults}
-          />
-        );
+        return <QuestionBank {...commonProps} />;
       case "compensationBenchmarking":
-        return (
-          <CompensationBenchmarking
-            resume={resume}
-            jobDescription={jobDescription}
-            analysisResults={analysisResults}
-          />
-        );
+        return <CompensationBenchmarking {...commonProps} />;
       default:
-        return (
-          <Keywords
-            resume={resume}
-            jobDescription={jobDescription}
-            analysisResults={analysisResults}
-          />
-        );
+        return <Keywords {...commonProps} />;
     }
   };
 
-  // Add console logs for debugging
   console.log("TabsContainer Props:", {
     resumeLength: resume?.length,
     jobDescriptionLength: jobDescription?.length,
@@ -176,6 +264,19 @@ const TabsContainer = ({
     currentUser: !!currentUser,
     userTier,
     activeTab,
+    cacheKey,
+    tabCache: Object.keys(tabCache).reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: {
+          hasData: !!tabCache[key].data,
+          loading: tabCache[key].loading,
+          error: !!tabCache[key].error,
+          isFresh: isDataFresh(key),
+        },
+      }),
+      {}
+    ),
   });
 
   if (!isResumeSubmitted || !isJobDescriptionSubmitted) {
@@ -184,15 +285,14 @@ const TabsContainer = ({
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-8 font-inter">
-      {/* Glassy Container with Gradient Border */}
       <div className="relative p-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 rounded-2xl">
-        {/* Main Container */}
         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
           {/* Tab Header */}
           <div className="flex flex-wrap gap-3 mb-6">
             {tabs.map((tab) => {
               const hasAccess = canAccessTab(tab);
               const isActive = activeTab === tab.id;
+              const hasCache = !!tabCache[tab.id]?.data;
 
               return (
                 <button
@@ -214,7 +314,6 @@ const TabsContainer = ({
                     )}
                   </span>
 
-                  {/* Active tab glow effect */}
                   {isActive && (
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-30 -z-10"></div>
                   )}

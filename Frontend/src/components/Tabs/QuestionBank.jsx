@@ -1,20 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { sendJobDescriptionForQuestions } from "../../utils/claudeAPI.js";
 
-const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
-  const [questions, setQuestions] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const QuestionBank = ({
+  resume,
+  jobDescription,
+  analysisResults,
+  cachedData,
+  loading: parentLoading,
+  error: parentError,
+  isDataFresh,
+  updateCache,
+  forceRefresh,
+}) => {
+  // Use cached data if available, otherwise use local state
+  const [questions, setQuestions] = useState(cachedData || null);
+  const [loading, setLoading] = useState(parentLoading || false);
+  const [error, setError] = useState(parentError || null);
   const [expandedCategories, setExpandedCategories] = useState(new Set());
   const [expandedQuestions, setExpandedQuestions] = useState(new Set());
 
+  // Sync with cached data when it changes
   useEffect(() => {
-    if (jobDescription && jobDescription.trim()) {
+    if (cachedData) {
+      setQuestions(cachedData);
+      setLoading(false);
+      setError(null);
+    }
+  }, [cachedData]);
+
+  // Sync loading and error states with parent
+  useEffect(() => {
+    setLoading(parentLoading || false);
+    setError(parentError || null);
+  }, [parentLoading, parentError]);
+
+  // Fetch data when component mounts if no cache exists
+  useEffect(() => {
+    if (jobDescription && jobDescription.trim() && !cachedData && !loading) {
       fetchQuestions();
     }
-  }, [jobDescription]);
+  }, [jobDescription, cachedData, loading]);
 
   const fetchQuestions = async () => {
+    // Update parent cache state
+    updateCache({ loading: true, error: null });
     setLoading(true);
     setError(null);
 
@@ -24,19 +53,41 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
       // Parse the Claude response to extract the JSON
       const content = response.content?.[0]?.text || "";
       const parsedQuestions = JSON.parse(content);
+
       setQuestions(parsedQuestions);
 
-      // Expand all categories by default
-      const allCategories = new Set(
-        parsedQuestions.categories.map((_, index) => index)
-      );
-      setExpandedCategories(allCategories);
+      // Update parent cache with successful data
+      updateCache({
+        data: parsedQuestions,
+        loading: false,
+        error: null,
+      });
+
+      // Keep all categories collapsed by default
+      setExpandedCategories(new Set());
+      setExpandedQuestions(new Set());
     } catch (err) {
       console.error("Error fetching questions:", err);
-      setError("Failed to generate interview questions. Please try again.");
+      const errorMessage =
+        "Failed to generate interview questions. Please try again.";
+
+      setError(errorMessage);
+
+      // Update parent cache with error
+      updateCache({
+        loading: false,
+        error: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = () => {
+    // Force refresh by clearing cache and fetching new data
+    forceRefresh();
+    setQuestions(null);
+    fetchQuestions();
   };
 
   const toggleCategory = (categoryIndex) => {
@@ -72,19 +123,6 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
     }
   };
 
-  const getDifficultyTextColor = (difficulty) => {
-    switch (difficulty?.toLowerCase()) {
-      case "easy":
-        return "text-emerald-400";
-      case "medium":
-        return "text-yellow-400";
-      case "hard":
-        return "text-red-400";
-      default:
-        return "text-gray-400";
-    }
-  };
-
   if (!jobDescription || !jobDescription.trim()) {
     return (
       <div className="font-inter">
@@ -116,7 +154,9 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
             }}
           ></div>
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
-            Generating Interview Questions...
+            {cachedData
+              ? "Refreshing Questions..."
+              : "Generating Interview Questions..."}
           </h3>
           <p className="text-gray-400">
             Analyzing the job requirements to create tailored questions.
@@ -172,9 +212,11 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
     <div className="font-inter space-y-6">
       {/* Header */}
       <div className="text-center pb-6 border-b border-slate-700/50">
-        <h2 className="text-2xl font-bold text-gray-100 mb-2">
-          Interview Question Bank
-        </h2>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h2 className="text-2xl font-bold text-gray-100">
+            Interview Question Bank
+          </h2>
+        </div>
         <p className="text-gray-400 mb-4">
           Tailored questions based on the job requirements
         </p>
@@ -291,7 +333,7 @@ const QuestionBank = ({ resume, jobDescription, analysisResults }) => {
       {/* Footer */}
       <div className="text-center pt-6 border-t border-slate-700/50">
         <button
-          onClick={fetchQuestions}
+          onClick={handleRefresh}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
         >
           🔄 Regenerate Questions

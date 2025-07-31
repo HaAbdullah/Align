@@ -1,17 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { sendJobDescriptionForKeywords } from "../../utils/claudeAPI";
 
-const Keywords = ({ resume, jobDescription, analysisResults }) => {
-  const [keywordsData, setKeywordsData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const Keywords = ({
+  resume,
+  jobDescription,
+  analysisResults,
+  cachedData,
+  loading: parentLoading,
+  error: parentError,
+  isDataFresh,
+  updateCache,
+  forceRefresh,
+}) => {
+  // Use cached data if available, otherwise use local state
+  const [keywordsData, setKeywordsData] = useState(cachedData || null);
+  const [loading, setLoading] = useState(parentLoading || false);
+  const [error, setError] = useState(parentError || null);
+
+  // Sync with cached data when it changes
+  useEffect(() => {
+    if (cachedData) {
+      setKeywordsData(cachedData);
+      setLoading(false);
+      setError(null);
+    }
+  }, [cachedData]);
+
+  // Sync loading and error states with parent
+  useEffect(() => {
+    setLoading(parentLoading || false);
+    setError(parentError || null);
+  }, [parentLoading, parentError]);
+
+  // Fetch data when component mounts if no cache exists
+  useEffect(() => {
+    if (jobDescription && analysisResults && !cachedData && !loading) {
+      generateKeywordsAnalysis();
+    }
+  }, [jobDescription, analysisResults, cachedData, loading]);
 
   const generateKeywordsAnalysis = async () => {
     if (!jobDescription || !analysisResults) {
-      setError("Job description and analysis results are required");
+      const errorMessage = "Job description and analysis results are required";
+      setError(errorMessage);
+      updateCache({ error: errorMessage });
       return;
     }
 
+    // Update parent cache state
+    updateCache({ loading: true, error: null });
     setLoading(true);
     setError(null);
 
@@ -32,19 +69,36 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
       }
 
       setKeywordsData(responseText);
+
+      // Update parent cache with successful data
+      updateCache({
+        data: responseText,
+        loading: false,
+        error: null,
+      });
     } catch (err) {
       console.error("Error generating keywords analysis:", err);
-      setError("Failed to generate keywords analysis. Please try again.");
+      const errorMessage =
+        "Failed to generate keywords analysis. Please try again.";
+
+      setError(errorMessage);
+
+      // Update parent cache with error
+      updateCache({
+        loading: false,
+        error: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (jobDescription && analysisResults) {
-      generateKeywordsAnalysis();
-    }
-  }, [jobDescription, analysisResults]);
+  const handleRefresh = () => {
+    // Force refresh by clearing cache and fetching new data
+    forceRefresh();
+    setKeywordsData(null);
+    generateKeywordsAnalysis();
+  };
 
   const parseKeywordsData = (text) => {
     if (!text) return [];
@@ -98,9 +152,11 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
     <div className="font-inter">
       {/* Header */}
       <div className="text-center mb-8 pb-6 border-b border-slate-700/50">
-        <h2 className="text-2xl font-bold text-gray-100 mb-2">
-          Keywords Analysis
-        </h2>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h2 className="text-2xl font-bold text-gray-100">
+            Keywords Analysis
+          </h2>
+        </div>
         <p className="text-gray-400">
           Matched keywords between job description and your resume
         </p>
@@ -119,7 +175,7 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
             }}
           ></div>
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
-            Analyzing Keywords
+            {cachedData ? "Refreshing Keywords..." : "Analyzing Keywords"}
           </h3>
           <p className="text-gray-400">
             Matching job description keywords with your resume...
@@ -144,31 +200,43 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
 
       {/* Keywords Chart */}
       {keywordsList.length > 0 && !loading && (
-        <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-xl overflow-hidden">
-          {/* Chart Header */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
-            <div className="px-6 py-4 border-b lg:border-b-0 lg:border-r border-white/20">
-              Keyword
+        <div className="space-y-6">
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-xl overflow-hidden">
+            {/* Chart Header */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+              <div className="px-6 py-4 border-b lg:border-b-0 lg:border-r border-white/20">
+                Keyword
+              </div>
+              <div className="px-6 py-4 lg:col-span-2">Analysis</div>
             </div>
-            <div className="px-6 py-4 lg:col-span-2">Analysis</div>
+
+            {/* Chart Rows */}
+            {keywordsList.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 lg:grid-cols-3 border-b border-slate-700/30 last:border-b-0 hover:bg-slate-700/30 transition-all duration-200"
+              >
+                <div className="px-6 py-4 font-semibold text-blue-400 border-b lg:border-b-0 lg:border-r border-slate-700/30 flex items-center">
+                  <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                    {item.keyword}
+                  </span>
+                </div>
+                <div className="px-6 py-4 text-gray-300 text-sm leading-relaxed lg:col-span-2 flex items-center">
+                  {item.analysis}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Chart Rows */}
-          {keywordsList.map((item, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 lg:grid-cols-3 border-b border-slate-700/30 last:border-b-0 hover:bg-slate-700/30 transition-all duration-200"
+          {/* Footer with Refresh Button */}
+          <div className="text-center pt-6 border-t border-slate-700/50">
+            <button
+              onClick={handleRefresh}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
             >
-              <div className="px-6 py-4 font-semibold text-blue-400 border-b lg:border-b-0 lg:border-r border-slate-700/30 flex items-center">
-                <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
-                  {item.keyword}
-                </span>
-              </div>
-              <div className="px-6 py-4 text-gray-300 text-sm leading-relaxed lg:col-span-2 flex items-center">
-                {item.analysis}
-              </div>
-            </div>
-          ))}
+              🔄 Refresh Analysis
+            </button>
+          </div>
         </div>
       )}
 

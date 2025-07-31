@@ -1,21 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { sendJobDescriptionForCompanyInsights } from "../../utils/claudeAPI.js";
 
-const CompanyInsights = ({ resume, jobDescription, analysisResults }) => {
-  const [companyData, setCompanyData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const CompanyInsights = ({
+  resume,
+  jobDescription,
+  analysisResults,
+  cachedData,
+  loading: parentLoading,
+  error: parentError,
+  isDataFresh,
+  updateCache,
+  forceRefresh,
+}) => {
+  // Use cached data if available, otherwise use local state
+  const [companyData, setCompanyData] = useState(cachedData || null);
+  const [loading, setLoading] = useState(parentLoading || false);
+  const [error, setError] = useState(parentError || null);
   const [expandedSections, setExpandedSections] = useState(
     new Set(["overview"])
   );
 
+  // Sync with cached data when it changes
   useEffect(() => {
-    if (jobDescription && jobDescription.trim()) {
+    if (cachedData) {
+      setCompanyData(cachedData);
+      setLoading(false);
+      setError(null);
+    }
+  }, [cachedData]);
+
+  // Sync loading and error states with parent
+  useEffect(() => {
+    setLoading(parentLoading || false);
+    setError(parentError || null);
+  }, [parentLoading, parentError]);
+
+  // Fetch data when component mounts if no cache exists
+  useEffect(() => {
+    if (jobDescription && jobDescription.trim() && !cachedData && !loading) {
       fetchCompanyData();
     }
-  }, [jobDescription]);
+  }, [jobDescription, cachedData, loading]);
 
   const fetchCompanyData = async () => {
+    // Update parent cache state
+    updateCache({ loading: true, error: null });
     setLoading(true);
     setError(null);
 
@@ -31,13 +60,36 @@ const CompanyInsights = ({ resume, jobDescription, analysisResults }) => {
       const parsedData = JSON.parse(content);
       setCompanyData(parsedData);
 
+      // Update parent cache with successful data
+      updateCache({
+        data: parsedData,
+        loading: false,
+        error: null,
+      });
+
       setExpandedSections(new Set(["overview"]));
     } catch (err) {
       console.error("Error fetching company data:", err);
-      setError("Failed to generate company insights data. Please try again.");
+      const errorMessage =
+        "Failed to generate company insights data. Please try again.";
+
+      setError(errorMessage);
+
+      // Update parent cache with error
+      updateCache({
+        loading: false,
+        error: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = () => {
+    // Force refresh by clearing cache and fetching new data
+    forceRefresh();
+    setCompanyData(null);
+    fetchCompanyData();
   };
 
   const toggleSection = (sectionId) => {
@@ -91,7 +143,9 @@ const CompanyInsights = ({ resume, jobDescription, analysisResults }) => {
             }}
           ></div>
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
-            Analyzing Company Information...
+            {cachedData
+              ? "Refreshing Company Data..."
+              : "Analyzing Company Information..."}
           </h3>
           <p className="text-gray-400">
             Gathering insights about this company from multiple sources.
@@ -147,9 +201,9 @@ const CompanyInsights = ({ resume, jobDescription, analysisResults }) => {
     <div className="font-inter space-y-6">
       {/* Header */}
       <div className="text-center pb-6 border-b border-slate-700/50">
-        <h2 className="text-2xl font-bold text-gray-100 mb-2">
-          Company Insights
-        </h2>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h2 className="text-2xl font-bold text-gray-100">Company Insights</h2>
+        </div>
         <p className="text-gray-400 mb-4">
           Comprehensive overview and employee feedback
         </p>
@@ -482,7 +536,7 @@ const CompanyInsights = ({ resume, jobDescription, analysisResults }) => {
       {/* Footer */}
       <div className="text-center pt-6 border-t border-slate-700/50">
         <button
-          onClick={fetchCompanyData}
+          onClick={handleRefresh}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
         >
           🔄 Refresh Data
