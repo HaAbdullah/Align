@@ -20,7 +20,18 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
         jobDescription,
         analysisResults
       );
-      setKeywordsData(response.content[0].text);
+
+      // Handle the response more robustly
+      let responseText = "";
+      if (response.content && response.content[0] && response.content[0].text) {
+        responseText = response.content[0].text;
+      } else if (typeof response === "string") {
+        responseText = response;
+      } else {
+        throw new Error("Invalid response format from API");
+      }
+
+      setKeywordsData(responseText);
     } catch (err) {
       console.error("Error generating keywords analysis:", err);
       setError("Failed to generate keywords analysis. Please try again.");
@@ -44,21 +55,40 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
     const lines = text.split("\n").filter((line) => line.trim());
 
     for (let line of lines) {
-      // Look for patterns like "**Keyword**: explanation" or "- Keyword: explanation"
-      const keywordMatch = line.match(
-        /^[\*\-\•\s]*\*?\*?([^:*]+?)[\*]*\s*:\s*(.+)/
-      );
+      // More flexible regex patterns to handle different formats from Perplexity
+      const patterns = [
+        // Pattern 1: **Keyword**: explanation or **Keyword:** explanation
+        /^[\*\-\•\s]*\*?\*?([^:*]+?)[\*]*\s*:\s*(.+)/,
+        // Pattern 2: - Keyword: explanation
+        /^[\-\•]\s*([^:]+):\s*(.+)/,
+        // Pattern 3: Keyword - explanation
+        /^([^-]+)\s*-\s*(.+)/,
+        // Pattern 4: Simple "word: explanation" format
+        /^([A-Za-z\s]+):\s*(.+)/,
+      ];
+
+      let keywordMatch = null;
+
+      for (const pattern of patterns) {
+        keywordMatch = line.match(pattern);
+        if (keywordMatch) break;
+      }
 
       if (keywordMatch) {
-        const keyword = keywordMatch[1].trim().replace(/[\*\-\•]/g, "");
-        const analysis = keywordMatch[2].trim().replace(/[\*]/g, "");
+        let keyword = keywordMatch[1].trim().replace(/[\*\-\•]/g, "");
+        let analysis = keywordMatch[2].trim().replace(/[\*]/g, "");
 
-        if (keyword && analysis && keyword.length > 1) {
+        // Clean up the keyword - remove common prefixes
+        keyword = keyword.replace(
+          /^(Keyword|Skills?|Term|Tech|Technology):\s*/i,
+          ""
+        );
+
+        if (keyword && analysis && keyword.length > 1 && analysis.length > 5) {
           keywords.push({ keyword, analysis });
         }
       }
     }
-
     return keywords;
   };
 
@@ -139,6 +169,26 @@ const Keywords = ({ resume, jobDescription, analysisResults }) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* No Keywords Found State */}
+      {keywordsData && keywordsList.length === 0 && !loading && !error && (
+        <div className="text-center py-16">
+          <div className="text-6xl mb-6">🔍</div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            No Keywords Parsed
+          </h3>
+          <p className="text-gray-400 mb-4">
+            The analysis completed but no keywords could be extracted from the
+            response format.
+          </p>
+          <button
+            onClick={generateKeywordsAnalysis}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
+            Try Again
+          </button>
         </div>
       )}
 

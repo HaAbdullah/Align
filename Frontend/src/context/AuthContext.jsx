@@ -5,16 +5,14 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
-import { auth } from "../firebase/firebase"; // ← Import YOUR initialized auth
+import { auth } from "../firebase/firebase";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Remove this line: const auth = getAuth();
 
-  // Check if user is logged in from Firebase on app start
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log("🔥 Auth state changed:", user ? "Logged in" : "Logged out");
@@ -27,7 +25,6 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []); // Remove [auth] dependency since auth is now imported
 
-  // Rest of your code stays the same...
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {

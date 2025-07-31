@@ -57,10 +57,17 @@ const Navbar = () => {
             <img
               src={fullLogo}
               alt="Align Logo"
-              className="w-10 h-10 sm:w-12 sm:h-12 object-contain -ml-4"
+              className="h-8 w-auto sm:h-10 sm:w-auto object-contain -ml-2"
             />
           </Link>
           <div className="flex items-center space-x-2 sm:space-x-3">
+            <Link
+              to="/pricing"
+              className="bg-emerald-600 text-white font-semibold px-3 py-1.5 sm:px-4 sm:py-2 rounded-full hover:bg-opacity-90 text-xs sm:text-sm transition-all duration-300 shadow-sm"
+            >
+              Pricing
+            </Link>
+
             {/* Dashboard button - only show if authenticated */}
             {isAuthenticated && (
               <Link
@@ -127,16 +134,36 @@ const Navbar = () => {
           }`}
         >
           <div className="px-4 py-3 space-y-2">
-            {["/", "/about", "/contact"].map((path, i) => (
+            <Link
+              to="/"
+              onClick={handleNavClick}
+              className="block py-2 text-gray-100 hover:text-emerald-400 transition-colors font-bold"
+            >
+              Home
+            </Link>
+
+            {/* Saved Documents in mobile menu - only show if authenticated */}
+            {isAuthenticated && (
+              <Link
+                to="/saved-documents"
+                onClick={handleNavClick}
+                className="block py-2 text-gray-100 hover:text-emerald-400 transition-colors font-bold"
+              >
+                My Saved Documents
+              </Link>
+            )}
+
+            {["/about", "/contact"].map((path, i) => (
               <Link
                 key={path}
                 to={path}
                 onClick={handleNavClick}
                 className="block py-2 text-gray-100 hover:text-emerald-400 transition-colors font-bold"
               >
-                {["Home", "About Align", "Contact Us"][i]}
+                {["About Align", "Contact Us"][i]}
               </Link>
             ))}
+
             {/* Dashboard in mobile menu - only show if authenticated */}
             {isAuthenticated && (
               <Link
@@ -188,15 +215,40 @@ const Navbar = () => {
             />
           </Link>
         </div>
-
         {/* Center section - Navigation */}
-        <div className="flex justify-center ml-40">
+        <div className="flex justify-center">
           <div
             className={`hidden lg:flex items-center ${
-              scrolled ? "space-x-7" : "space-x-8"
+              scrolled ? "space-x-6" : "space-x-8"
             }`}
+            style={{
+              marginLeft: scrolled ? "80px" : "110px", // Adjust margin based on scroll state
+            }}
           >
-            {["/", "/about", "/contact"].map((path, i) => (
+            {/* Home link */}
+            <Link
+              to="/"
+              className={`text-gray-100 hover:text-emerald-400 transition-colors whitespace-nowrap font-bold ${
+                scrolled ? "text-base" : "text-lg"
+              }`}
+            >
+              Home
+            </Link>
+
+            {/* Saved Documents - only show if authenticated */}
+            {isAuthenticated && (
+              <Link
+                to="/saved-documents"
+                className={`text-gray-100 hover:text-emerald-400 transition-colors whitespace-nowrap font-bold ${
+                  scrolled ? "text-base" : "text-lg"
+                }`}
+              >
+                My Documents
+              </Link>
+            )}
+
+            {/* About and Contact links */}
+            {["/about", "/contact"].map((path, i) => (
               <Link
                 key={path}
                 to={path}
@@ -204,12 +256,11 @@ const Navbar = () => {
                   scrolled ? "text-base" : "text-lg"
                 }`}
               >
-                {["Home", "About Align", "Contact Us"][i]}
+                {["About Align", "Contact Us"][i]}
               </Link>
             ))}
           </div>
         </div>
-
         {/* Right section - Buttons */}
         <div className="flex justify-end">
           <div

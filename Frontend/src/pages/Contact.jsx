@@ -52,7 +52,7 @@ const Contact = () => {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text mb-4">
+          <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text mb-4 pb-2">
             Questions? Feedback? Just Say Hi.
           </h1>
           <p className="text-xl text-gray-200">We'd love to hear from you.</p>

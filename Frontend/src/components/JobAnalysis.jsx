@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   sendJobDescriptionToClaude,
   sendChatFeedbackToClaude,
+  saveDocument,
 } from "../utils/claudeAPI";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
@@ -37,25 +38,93 @@ function JobAnalysis({
   const [activeDocument, setActiveDocument] = useState(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
-  // Replace your current handleSendMessage function with this one:
 
-  // Handler for chat feedback - FIXED VERSION
+  // Save document
+  const [resumeHTML, setResumeHTML] = useState(""); // Store original resume HTML
+  const [coverLetterHTML, setCoverLetterHTML] = useState(""); // Store original cover letter HTML
+  const [savingDocument, setSavingDocument] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState("");
+
+  const handleSaveDocument = async () => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    if (!currentUser?.uid) {
+      setError("User authentication required to save documents");
+      return;
+    }
+
+    const documentType =
+      activeDocument === "resume" ? "resume" : "cover_letter";
+    const documentToSave =
+      activeDocument === "resume" ? resumeHTML : coverLetterHTML;
+
+    if (!documentToSave || documentToSave.trim() === "") {
+      setError(
+        `No ${
+          documentType === "resume" ? "resume" : "cover letter"
+        } to save. Please generate one first.`
+      );
+      return;
+    }
+
+    console.log(
+      `📄 Saving ${documentType}, HTML length:`,
+      documentToSave.length
+    );
+
+    setSavingDocument(true);
+    setSaveSuccess("");
+    setError("");
+
+    try {
+      await saveDocument(currentUser.uid, documentType, documentToSave);
+
+      // Show success message
+      setSaveSuccess(
+        `${
+          documentType === "resume" ? "Resume" : "Cover letter"
+        } saved successfully!`
+      );
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveSuccess("");
+      }, 3000);
+    } catch (error) {
+      console.error("Error saving document:", error);
+      setError(`Failed to save ${documentType}: ${error.message}`);
+    } finally {
+      setSavingDocument(false);
+    }
+  };
+
+  // Replace your current handleSendMessage function with this one:
   const handleSendMessage = async (feedbackPrompt) => {
     try {
       let response;
 
       // Route to the correct endpoint based on active document
       if (activeDocument === "resume") {
-        // Call resume endpoint for resume feedback
         response = await sendResumeFeedbackToClaude(feedbackPrompt);
       } else if (activeDocument === "coverLetter") {
-        // Call cover letter endpoint for cover letter feedback
         response = await sendCoverLetterFeedbackToClaude(feedbackPrompt);
       } else {
         throw new Error("No active document selected");
       }
 
-      return response.content[0].text;
+      // FIXED: Access the nested data structure
+      if (
+        !response.data ||
+        !response.data.content ||
+        !response.data.content[0]
+      ) {
+        throw new Error("Invalid response structure from API");
+      }
+
+      return response.data.content[0].text;
     } catch (error) {
       console.error("Error sending chat feedback:", error);
       throw error;
@@ -63,7 +132,6 @@ function JobAnalysis({
   };
 
   // Add these two new functions to handle the different endpoints:
-
   const sendResumeFeedbackToClaude = async (prompt) => {
     try {
       console.log(
@@ -74,7 +142,7 @@ function JobAnalysis({
 
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
-        : "https://jobfit-backend-29ai.onrender.com/api";
+        : "https://align-vahq.onrender.com/api"; // Fixed URL
 
       const response = await fetch(`${API_BASE_URL}/create-resume`, {
         method: "POST",
@@ -100,6 +168,7 @@ function JobAnalysis({
     }
   };
 
+  // Updated sendCoverLetterFeedbackToClaude function in JobAnalysis.js
   const sendCoverLetterFeedbackToClaude = async (prompt) => {
     try {
       console.log(
@@ -110,7 +179,7 @@ function JobAnalysis({
 
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
-        : "https://jobfit-backend-29ai.onrender.com/api";
+        : "https://align-vahq.onrender.com/api"; // Fixed URL
 
       const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
         method: "POST",
@@ -225,6 +294,7 @@ function JobAnalysis({
     setActiveDocument("coverLetter");
   }, [coverLetter]);
 
+  // Updated handleSendJobDescription function in JobAnalysis.js
   const handleSendJobDescription = async () => {
     if (isAuthenticated && !canGenerate()) {
       setShowUpgradeModal(true);
@@ -236,6 +306,7 @@ function JobAnalysis({
     setError("");
     setSummary("");
     setCoverLetter("");
+    setResumeHTML(""); // Clear previous HTML
     setActiveDocument(null);
 
     let createdPrompt =
@@ -245,12 +316,32 @@ function JobAnalysis({
     try {
       const response = await sendJobDescriptionToClaude(createdPrompt);
 
-      setSummary(response.content[0].text);
+      // FIXED: Access the nested data structure with safety check
+      if (
+        !response.data ||
+        !response.data.content ||
+        !response.data.content[0]
+      ) {
+        throw new Error("Invalid response structure from API");
+      }
+
+      // CAPTURE THE ORIGINAL HTML CONTENT
+      const fullText = response.data.content
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("");
+
+      console.log("✅ Full resume content length:", fullText.length);
+      console.log("📄 Full resume HTML:\n", fullText);
+
+      // Store both the text for display AND the HTML for saving
+      setSummary(fullText);
+      setResumeHTML(fullText); // Store the original HTML
 
       setJobDescription(jobDescriptionInput);
       setIsJobDescriptionSubmitted(true);
       if (setAnalysisResults) {
-        setAnalysisResults(response.content[0].text);
+        setAnalysisResults(fullText);
       }
 
       if (isAuthenticated) {
@@ -263,6 +354,7 @@ function JobAnalysis({
     }
   };
 
+  // UPDATED handleGenerateCoverLetter function
   const handleGenerateCoverLetter = async () => {
     if (!jobDescriptionInput.trim() || !resume.trim()) return;
 
@@ -273,6 +365,7 @@ function JobAnalysis({
 
     setGeneratingCoverLetter(true);
     setError("");
+    setCoverLetterHTML(""); // Clear previous HTML
 
     try {
       let coverLetterPrompt =
@@ -283,7 +376,27 @@ function JobAnalysis({
 
       const response = await sendCoverLetterToClaude(coverLetterPrompt);
 
-      setCoverLetter(response.content[0].text);
+      // FIXED: Access the nested data structure with safety check
+      if (
+        !response.data ||
+        !response.data.content ||
+        !response.data.content[0]
+      ) {
+        throw new Error("Invalid response structure from API");
+      }
+
+      // CAPTURE THE ORIGINAL HTML CONTENT
+      const fullText = response.data.content
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("");
+
+      console.log("✅ Full cover letter content length:", fullText.length);
+      console.log("📄 Full cover letter HTML:\n", fullText);
+
+      // Store both the text for display AND the HTML for saving
+      setCoverLetter(fullText);
+      setCoverLetterHTML(fullText); // Store the original HTML
 
       if (isAuthenticated) {
         incrementUsage();
@@ -295,6 +408,7 @@ function JobAnalysis({
     }
   };
 
+  // Updated sendCoverLetterToClaude function in JobAnalysis.js
   const sendCoverLetterToClaude = async (prompt) => {
     try {
       console.log(
@@ -305,7 +419,7 @@ function JobAnalysis({
 
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
-        : "https://jobfit-backend-29ai.onrender.com/api";
+        : "https://align-vahq.onrender.com/api"; // Fixed URL
 
       const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
         method: "POST",
@@ -367,10 +481,12 @@ function JobAnalysis({
 
   const handleUpdateResume = (newContent) => {
     setSummary(newContent);
+    setResumeHTML(newContent); // Keep HTML in sync when content is updated
   };
 
   const handleUpdateCoverLetter = (newContent) => {
     setCoverLetter(newContent);
+    setCoverLetterHTML(newContent); // Keep HTML in sync when content is updated
   };
 
   const switchToResume = () => {
@@ -425,7 +541,7 @@ function JobAnalysis({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Generation Buttons - ONLY APPEAR BEFORE GENERATION */}
         <div className="flex gap-4 justify-center">
           <button
             onClick={handleSendJobDescription}
@@ -521,8 +637,8 @@ function JobAnalysis({
         </div>
       )}
 
-      {/* Document Display Section */}
-      {summary && (
+      {/* Document Display Section - ONLY APPEARS AFTER GENERATION AND NOT WHILE LOADING */}
+      {summary && !isLoading && !generatingCoverLetter && (
         <div className="max-w-4xl mx-auto">
           {/* Document Tabs */}
           <div className="flex items-end justify-start mb-0">
@@ -583,7 +699,7 @@ function JobAnalysis({
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Action Buttons - ONLY APPEAR AFTER GENERATION */}
           <div className="flex gap-4 justify-center mb-8">
             <button
               onClick={onStartNewApplication}
@@ -592,6 +708,37 @@ function JobAnalysis({
               <img src={rotateIcon} alt="New Application" className="w-5 h-5" />
               Start a New Application
             </button>
+
+            <button
+              onClick={handleSaveDocument}
+              disabled={savingDocument || !activeDocument}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100 flex items-center gap-3"
+            >
+              {savingDocument ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  Save {activeDocument === "resume" ? "Resume" : "Cover Letter"}
+                </>
+              )}
+            </button>
+
             <button
               onClick={() =>
                 downloadPDF(
@@ -605,11 +752,31 @@ function JobAnalysis({
               Download as PDF
             </button>
           </div>
+
+          {/* Success Message - MOVED HERE TO BE VISIBLE */}
+          {saveSuccess && (
+            <div className="max-w-4xl mx-auto mb-6 p-4 bg-emerald-900/50 border border-emerald-500 rounded-xl text-emerald-200 text-center">
+              <p className="font-medium flex items-center justify-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {saveSuccess}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Chat Interface */}
-      {activeDocument && (
+      {/* Chat Interface - ONLY APPEARS AFTER GENERATION */}
+      {activeDocument && !isLoading && !generatingCoverLetter && (
         <ChatInterface
           onSendMessage={handleSendMessage}
           isLoading={isLoading || generatingCoverLetter}

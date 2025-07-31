@@ -39,10 +39,20 @@ const PricingPage = () => {
 
       const priceId = priceIds[planName][billingCycle];
 
-      if (!priceId) {
+      if (!priceId || priceId === "none") {
         console.error("Price ID not found for:", planName, billingCycle);
+        alert(
+          "This billing option is not available yet. Please try monthly billing."
+        );
         return;
       }
+
+      console.log("Creating checkout session for:", {
+        priceId,
+        planName,
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+      });
 
       // Call your backend to create checkout session
       const response = await fetch(
@@ -61,20 +71,30 @@ const PricingPage = () => {
         }
       );
 
-      const { sessionId, url } = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      if (url) {
+      const responseData = await response.json();
+      console.log("Backend response:", responseData);
+
+      // FIX: Access the data object properly
+      if (responseData.success && responseData.data && responseData.data.url) {
+        console.log("Redirecting to Stripe:", responseData.data.url);
         // Redirect to Stripe Checkout
-        window.location.href = url;
+        window.location.href = responseData.data.url;
+      } else {
+        console.error("Invalid response structure:", responseData);
+        throw new Error("Invalid response from server");
       }
     } catch (error) {
       console.error("Checkout error:", error);
+      alert(`Checkout failed: ${error.message}`);
       // Clear stored plan data on error
       sessionStorage.removeItem("selectedPlan");
       sessionStorage.removeItem("selectedBillingCycle");
     }
   };
-
   const plans = [
     {
       name: "Freemium",

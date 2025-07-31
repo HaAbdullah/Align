@@ -117,7 +117,7 @@ const Dashboard = () => {
     }
   };
 
-  // Fixed: Use the cancelSubscription from context with proper error handling
+  // Updated handleCancelSubscription function for Dashboard.js
   const handleCancelSubscription = async () => {
     if (!hasActiveSubscription()) {
       setErrorMessage("No active subscription to cancel");
@@ -129,26 +129,26 @@ const Dashboard = () => {
     setSuccessMessage("");
 
     try {
+      // Get local subscription data
+      const localSubData = getSubscriptionData();
+      if (!localSubData?.hasSubscription) {
+        setErrorMessage("No subscription data found");
+        return;
+      }
+
+      // ✅ FIX: Use ONLY the context method (which you already fixed above)
       await cancelSubscription();
 
-      // Refresh subscription data after successful cancellation
+      // Refresh subscription data
       await fetchSubscriptionData();
-
       setShowCancelModal(false);
-      setSuccessMessage(
-        "Subscription cancelled successfully. You'll retain access until the end of your billing period."
-      );
-
-      // Clear success message after 5 seconds
+      setSuccessMessage("Subscription cancelled successfully.");
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
       console.error("Error cancelling subscription:", error);
       setErrorMessage(
-        error.message ||
-          "Failed to cancel subscription. Please try again or contact support."
+        error.message || "Failed to cancel subscription. Please try again."
       );
-
-      // Clear error message after 5 seconds
       setTimeout(() => setErrorMessage(""), 5000);
     } finally {
       setCancelling(false);
@@ -234,7 +234,7 @@ const Dashboard = () => {
                 Welcome back, {currentUser?.displayName || "User"}!
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Manage your JobFitt.Ai subscription and track your usage
+                Manage your Align subscription and track your usage
               </p>
             </div>
             <div className="mt-4 md:mt-0">

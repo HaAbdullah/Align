@@ -11,7 +11,7 @@ const Success = () => {
   const [error, setError] = useState(null);
 
   const { currentUser } = useAuth();
-  const { updateSubscription } = useUsage(); // ← NEW: Use database function
+  const { updateSubscription, refreshUserData } = useUsage(); // ✅ Added refreshUserData
 
   // Debug logging
   useEffect(() => {
@@ -86,15 +86,17 @@ const Success = () => {
         console.log("✅ Session verification successful:", data);
         console.log("📋 Full response data:", JSON.stringify(data, null, 2));
 
-        setSessionData(data);
+        // ✅ FIX: Extract data from response wrapper if needed
+        const sessionInfo = data.data || data;
+        setSessionData(sessionInfo);
 
         // Update the user's tier if we have all the data
-        if (data.planName && currentUser && !tierUpdated) {
+        if (sessionInfo.planName && currentUser && !tierUpdated) {
           console.log("🔄 Updating tier immediately with session data...");
           await updateUserTier(
-            data.planName,
-            data.customer_id,
-            data.subscription_id
+            sessionInfo.planName,
+            sessionInfo.customer_id,
+            sessionInfo.subscription_id
           );
         }
       } else {
@@ -112,7 +114,7 @@ const Success = () => {
     }
   };
 
-  // NEW: Updated function using database instead of localStorage
+  // ✅ FIXED: Updated function using database with better error handling
   const updateUserTier = async (
     planName,
     customerId = null,
@@ -152,12 +154,14 @@ const Success = () => {
           `🔄 Upgrading user ${currentUser.uid} to ${tierKey} tier via DATABASE`
         );
 
-        // NEW: Use database API instead of localStorage
-        await updateSubscription(
+        // ✅ FIX: Use database API with proper error handling
+        const result = await updateSubscription(
           tierKey,
           customerId || sessionData?.customer_id,
           subscriptionId || sessionData?.subscription_id
         );
+
+        console.log("✅ updateSubscription result:", result);
 
         setTierUpdated(true);
 
@@ -167,8 +171,11 @@ const Success = () => {
 
         console.log("✅ Tier updated successfully in database!");
 
-        // REMOVE: No more localStorage usage
-        // localStorage.setItem() calls are gone!
+        // ✅ FIX: Force refresh user data to ensure UI is updated
+        setTimeout(async () => {
+          console.log("🔄 Refreshing user data after tier update...");
+          await refreshUserData();
+        }, 1000);
       } catch (error) {
         console.error("❌ Error updating tier:", error);
         setError("Failed to update your subscription. Please contact support.");

@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-
+import fullLogo from "../assets/full_logo_wide.png";
+import { useAuth } from "../context/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 const AboutPage = () => {
+  const { currentUser, loading } = useAuth();
+  const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const [showContactOptions, setShowContactOptions] = useState(false);
-
+  const handleGetStarted = () => {
+    if (currentUser) {
+      navigate("/dashboard");
+    } else {
+      navigate("/signup");
+    }
+  };
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
@@ -101,7 +110,7 @@ const AboutPage = () => {
   return (
     <div className="min-h-screen bg-gray-900 font-inter">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-start justify-center px-6 pt-20 pb-32">
+      <section className="relative min-h-screen flex items-start justify-center px-6 pt-10 pb-32">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div
@@ -118,16 +127,23 @@ const AboutPage = () => {
         <div className="relative z-10 max-w-6xl mx-auto text-center pt-20">
           {/* Main Hero Content */}
           <div className="mb-8">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-12 leading-relaxed pb-4">
-              About Align
-            </h1>
+            <div className="flex flex-col justify-center items-center mb-12 space-y-4">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 leading-relaxed">
+                About
+              </h1>
+              <img
+                src={fullLogo}
+                alt="Align Logo"
+                className="h-20 sm:h-20 md:h-24 lg:h-28 w-auto object-contain"
+              />
+            </div>
+
             <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
               The future of job applications is here. Align uses cutting-edge AI
               to transform your resume and cover letter into{" "}
               <span className="text-emerald-400 font-semibold">
                 interview magnets
               </span>
-              .
             </p>
           </div>
 
@@ -465,12 +481,12 @@ const AboutPage = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
+            <button
+              onClick={handleGetStarted}
               className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
-              Start Free Today
-            </Link>
+              {currentUser ? "Go to Dashboard" : "Start Free Today"}
+            </button>
             <Link
               to="/dashboard"
               className="border-2 border-emerald-500 text-emerald-400 hover:bg-emerald-500 hover:text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105"

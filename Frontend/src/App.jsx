@@ -12,14 +12,13 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Pricing from "./pages/Pricing";
 import Success from "./pages/Success";
+import SavedDocuments from "./pages/SavedDocuments";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { UsageProvider } from "./context/UsageContext";
 
 import "./App.css";
-
-// Initialize Firebase (make sure this is imported at the top level)
 import "./firebase/firebase";
 
 // Protected route component
@@ -56,6 +55,9 @@ function AppContent() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/success" element={<Success />} />
+        <Route path="/saved-documents" element={<SavedDocuments />} />
+
+        {/* Protected routes */}
         <Route
           path="/account"
           element={

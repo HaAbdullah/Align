@@ -11,7 +11,7 @@ export const sendJobDescriptionToClaude = async (prompt) => {
 
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://align-vahq.onrender.com/api";
+      : "https://align-vahq.onrender.com/api"; // Fixed: added missing 'h'
 
     const response = await fetch(`${API_BASE_URL}/create-resume`, {
       method: "POST",
@@ -70,7 +70,6 @@ export const sendCoverLetterToClaude = async (prompt) => {
     throw error;
   }
 };
-
 /**
  * Sends user feedback to Claude API for regenerating a document
  * @param {string} documentType - Either "resume" or "cover letter"
@@ -101,7 +100,7 @@ export const sendChatFeedbackToClaude = async (
       typeof window !== "undefined" && window.location.hostname === "localhost";
     const API_BASE_URL = isLocalhost
       ? "http://localhost:3000/api"
-      : "https://align-vahq.onrender.com/api";
+      : "https://align-vahq.onrender.com/api"; // Fixed: added missing 'h'
 
     const endpoint =
       documentType === "resume" ? "create-resume" : "create-cover-letter";
@@ -166,7 +165,48 @@ export const sendJobDescriptionForQuestions = async (jobDescription) => {
     throw error;
   }
 };
+/**
+ * Saves a generated document to the user's recent documents
+ * @param {string} firebaseUid - User's Firebase UID
+ * @param {string} documentType - Either "resume" or "cover_letter"
+ * @param {string} htmlContent - The complete HTML content of the document
+ * @returns {Promise} - Response from save API
+ */
+export const saveDocument = async (firebaseUid, documentType, htmlContent) => {
+  try {
+    console.log(`Saving ${documentType} for user: ${firebaseUid}`);
 
+    const isLocalhost =
+      typeof window !== "undefined" && window.location.hostname === "localhost";
+    const API_BASE_URL = isLocalhost
+      ? "http://localhost:3000/api"
+      : "https://align-vahq.onrender.com/api";
+
+    const response = await fetch(`${API_BASE_URL}/documents/save`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firebaseUid,
+        documentType,
+        htmlContent,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Save request failed (${response.status}): ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log(`✅ Document saved successfully:`, result.data);
+    return result;
+  } catch (error) {
+    console.error(`❌ Error saving ${documentType}:`, error);
+    throw error;
+  }
+};
 /**
  * Sends a job description to get compensation benchmarking data
  * @param {string} jobDescription - The job description to process
