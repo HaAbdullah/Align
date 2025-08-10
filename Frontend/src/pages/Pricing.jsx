@@ -465,6 +465,28 @@ const PricingPage = () => {
             ))}
           </div>
 
+          {/* Test Card Info */}
+          <div className="mt-16 max-w-2xl mx-auto">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700 border border-green-200 dark:border-emerald-600 rounded-xl p-6 text-center">
+              <div className="flex justify-center mb-3">
+                <span className="bg-green-700 dark:bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+                  Demo Test Card
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                For Interviewers & Demo Access
+              </h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3 inline-block">
+                <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white tracking-wider">
+                  4242 4242 4242 4242
+                </p>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                Use any expiry date, CVC, and ZIP code for free upgrade access
+              </p>
+            </div>
+          </div>
+
           {/* FAQ Section */}
           <div className="mt-20 max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">

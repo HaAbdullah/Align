@@ -49,13 +49,13 @@ const UsageDisplay = () => {
           </button>
         )}
 
-        {/* Testing button - remove in production */}
+        {/* Demo button for interviewers */}
         <button
           className="reset-usage-btn"
           onClick={resetUsage}
-          title="Reset usage for testing"
+          title="Demo feature - reset usage counter for presentation purposes"
         >
-          Reset (Test)
+          Reset Usage (Demo)
         </button>
       </div>
     </div>

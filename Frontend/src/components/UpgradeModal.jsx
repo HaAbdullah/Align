@@ -55,6 +55,16 @@ function UpgradeModal() {
           </div>
         </div>
 
+        <div className="test-card-info">
+          <div className="test-card-header">
+            <span className="test-badge">Demo Test Card</span>
+          </div>
+          <div className="test-card-details">
+            <p className="test-card-number">4242 4242 4242 4242</p>
+            <p className="test-card-note">Use any expiry date and CVC for free upgrade</p>
+          </div>
+        </div>
+
         <div className="modal-actions">
           <button className="btn-primary" onClick={handleUpgradeFromModal}>
             View Pricing Plans

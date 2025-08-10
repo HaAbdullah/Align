@@ -39,9 +39,8 @@ function JobAnalysis({
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
 
-  // Save document
-  const [resumeHTML, setResumeHTML] = useState(""); // Store original resume HTML
-  const [coverLetterHTML, setCoverLetterHTML] = useState(""); // Store original cover letter HTML
+  const [resumeHTML, setResumeHTML] = useState("");
+  const [coverLetterHTML, setCoverLetterHTML] = useState("");
   const [savingDocument, setSavingDocument] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState("");
 
@@ -70,11 +69,6 @@ function JobAnalysis({
       return;
     }
 
-    console.log(
-      `📄 Saving ${documentType}, HTML length:`,
-      documentToSave.length
-    );
-
     setSavingDocument(true);
     setSaveSuccess("");
     setError("");
@@ -82,31 +76,26 @@ function JobAnalysis({
     try {
       await saveDocument(currentUser.uid, documentType, documentToSave);
 
-      // Show success message
       setSaveSuccess(
         `${
           documentType === "resume" ? "Resume" : "Cover letter"
         } saved successfully!`
       );
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSaveSuccess("");
       }, 3000);
     } catch (error) {
-      console.error("Error saving document:", error);
       setError(`Failed to save ${documentType}: ${error.message}`);
     } finally {
       setSavingDocument(false);
     }
   };
 
-  // Replace your current handleSendMessage function with this one:
   const handleSendMessage = async (feedbackPrompt) => {
     try {
       let response;
 
-      // Route to the correct endpoint based on active document
       if (activeDocument === "resume") {
         response = await sendResumeFeedbackToClaude(feedbackPrompt);
       } else if (activeDocument === "coverLetter") {
@@ -115,7 +104,6 @@ function JobAnalysis({
         throw new Error("No active document selected");
       }
 
-      // FIXED: Access the nested data structure
       if (
         !response.data ||
         !response.data.content ||
@@ -126,23 +114,17 @@ function JobAnalysis({
 
       return response.data.content[0].text;
     } catch (error) {
-      console.error("Error sending chat feedback:", error);
       throw error;
     }
   };
 
-  // Add these two new functions to handle the different endpoints:
   const sendResumeFeedbackToClaude = async (prompt) => {
     try {
-      console.log(
-        "Sending resume feedback to Claude API, length:",
-        prompt.length
-      );
       const isLocalhost = window.location.hostname === "localhost";
 
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api"; // Fixed URL
+        : "https://align-vahq.onrender.com/api";
 
       const response = await fetch(`${API_BASE_URL}/create-resume`, {
         method: "POST",
@@ -163,23 +145,17 @@ function JobAnalysis({
 
       return await response.json();
     } catch (error) {
-      console.error("Error calling Claude API for resume feedback:", error);
       throw error;
     }
   };
 
-  // Updated sendCoverLetterFeedbackToClaude function in JobAnalysis.js
   const sendCoverLetterFeedbackToClaude = async (prompt) => {
     try {
-      console.log(
-        "Sending cover letter feedback to Claude API, length:",
-        prompt.length
-      );
       const isLocalhost = window.location.hostname === "localhost";
 
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api"; // Fixed URL
+        : "https://align-vahq.onrender.com/api";
 
       const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
         method: "POST",
@@ -200,10 +176,6 @@ function JobAnalysis({
 
       return await response.json();
     } catch (error) {
-      console.error(
-        "Error calling Claude API for cover letter feedback:",
-        error
-      );
       throw error;
     }
   };
@@ -293,8 +265,6 @@ function JobAnalysis({
 
     setActiveDocument("coverLetter");
   }, [coverLetter]);
-
-  // Updated handleSendJobDescription function in JobAnalysis.js
   const handleSendJobDescription = async () => {
     if (isAuthenticated && !canGenerate()) {
       setShowUpgradeModal(true);
@@ -306,7 +276,7 @@ function JobAnalysis({
     setError("");
     setSummary("");
     setCoverLetter("");
-    setResumeHTML(""); // Clear previous HTML
+    setResumeHTML("");
     setActiveDocument(null);
 
     let createdPrompt =
@@ -316,7 +286,6 @@ function JobAnalysis({
     try {
       const response = await sendJobDescriptionToClaude(createdPrompt);
 
-      // FIXED: Access the nested data structure with safety check
       if (
         !response.data ||
         !response.data.content ||
@@ -325,18 +294,13 @@ function JobAnalysis({
         throw new Error("Invalid response structure from API");
       }
 
-      // CAPTURE THE ORIGINAL HTML CONTENT
       const fullText = response.data.content
         .filter((part) => part.type === "text")
         .map((part) => part.text)
         .join("");
 
-      console.log("✅ Full resume content length:", fullText.length);
-      console.log("📄 Full resume HTML:\n", fullText);
-
-      // Store both the text for display AND the HTML for saving
       setSummary(fullText);
-      setResumeHTML(fullText); // Store the original HTML
+      setResumeHTML(fullText);
 
       setJobDescription(jobDescriptionInput);
       setIsJobDescriptionSubmitted(true);
@@ -354,7 +318,6 @@ function JobAnalysis({
     }
   };
 
-  // UPDATED handleGenerateCoverLetter function
   const handleGenerateCoverLetter = async () => {
     if (!jobDescriptionInput.trim() || !resume.trim()) return;
 
@@ -365,7 +328,7 @@ function JobAnalysis({
 
     setGeneratingCoverLetter(true);
     setError("");
-    setCoverLetterHTML(""); // Clear previous HTML
+    setCoverLetterHTML("");
 
     try {
       let coverLetterPrompt =
@@ -376,7 +339,6 @@ function JobAnalysis({
 
       const response = await sendCoverLetterToClaude(coverLetterPrompt);
 
-      // FIXED: Access the nested data structure with safety check
       if (
         !response.data ||
         !response.data.content ||
@@ -385,18 +347,13 @@ function JobAnalysis({
         throw new Error("Invalid response structure from API");
       }
 
-      // CAPTURE THE ORIGINAL HTML CONTENT
       const fullText = response.data.content
         .filter((part) => part.type === "text")
         .map((part) => part.text)
         .join("");
 
-      console.log("✅ Full cover letter content length:", fullText.length);
-      console.log("📄 Full cover letter HTML:\n", fullText);
-
-      // Store both the text for display AND the HTML for saving
       setCoverLetter(fullText);
-      setCoverLetterHTML(fullText); // Store the original HTML
+      setCoverLetterHTML(fullText);
 
       if (isAuthenticated) {
         incrementUsage();
@@ -408,18 +365,13 @@ function JobAnalysis({
     }
   };
 
-  // Updated sendCoverLetterToClaude function in JobAnalysis.js
   const sendCoverLetterToClaude = async (prompt) => {
     try {
-      console.log(
-        "Sending cover letter prompt to Claude API, length:",
-        prompt.length
-      );
       const isLocalhost = window.location.hostname === "localhost";
 
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api"; // Fixed URL
+        : "https://align-vahq.onrender.com/api";
 
       const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
         method: "POST",
@@ -440,7 +392,6 @@ function JobAnalysis({
 
       return await response.json();
     } catch (error) {
-      console.error("Error calling Claude API for cover letter:", error);
       throw error;
     }
   };
@@ -474,19 +425,18 @@ function JobAnalysis({
         };
       };
     } catch (err) {
-      console.error(`Error during printing ${type}:`, err);
       alert(`An error occurred while printing the ${type}.`);
     }
   };
 
   const handleUpdateResume = (newContent) => {
     setSummary(newContent);
-    setResumeHTML(newContent); // Keep HTML in sync when content is updated
+    setResumeHTML(newContent);
   };
 
   const handleUpdateCoverLetter = (newContent) => {
     setCoverLetter(newContent);
-    setCoverLetterHTML(newContent); // Keep HTML in sync when content is updated
+    setCoverLetterHTML(newContent);
   };
 
   const switchToResume = () => {
@@ -505,24 +455,20 @@ function JobAnalysis({
     <div className="w-full max-w-7xl mx-auto p-6 font-inter">
       {isAuthenticated && <UsageDisplay />}
 
-      {/* Job Description Input Section */}
       <div className="mb-8">
         <h2 className="text-center text-xl font-medium mb-8 text-gray-100">
           Add the job posting. We'll analyze what the company is really looking
           for.
         </h2>
 
-        {/* Text Input Box with Gradient Border */}
         <div className="max-w-4xl mx-auto mb-8">
           <div className="h-64 relative">
-            {/* Gradient border background */}
             <div
               className={`absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl transition-opacity duration-300 ${
                 isTextareaFocused ? "opacity-100" : "opacity-0"
               }`}
             ></div>
 
-            {/* Main textarea container */}
             <div
               className={`absolute inset-[2px] bg-gray-800 border-2 ${
                 isTextareaFocused ? "border-transparent" : "border-gray-600"
@@ -541,7 +487,6 @@ function JobAnalysis({
           </div>
         </div>
 
-        {/* Generation Buttons - ONLY APPEAR BEFORE GENERATION */}
         <div className="flex gap-4 justify-center">
           <button
             onClick={handleSendJobDescription}
@@ -564,7 +509,6 @@ function JobAnalysis({
         </div>
       </div>
 
-      {/* Loading Spinner */}
       {(isLoading || generatingCoverLetter) && (
         <div className="flex flex-col items-center justify-center py-12">
           <div
@@ -582,14 +526,12 @@ function JobAnalysis({
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
         <div className="max-w-4xl mx-auto mb-8 p-4 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
           <p className="font-medium">Error: {error}</p>
         </div>
       )}
 
-      {/* Auth Prompt Modal */}
       {showAuthPrompt && !isAuthenticated && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 max-w-lg w-full mx-4 relative">
@@ -637,10 +579,8 @@ function JobAnalysis({
         </div>
       )}
 
-      {/* Document Display Section - ONLY APPEARS AFTER GENERATION AND NOT WHILE LOADING */}
       {summary && !isLoading && !generatingCoverLetter && (
         <div className="max-w-4xl mx-auto">
-          {/* Document Tabs */}
           <div className="flex items-end justify-start mb-0">
             <button
               className={`relative px-6 py-3 font-medium transition-all duration-300 rounded-t-lg border-l border-t border-r ${
@@ -667,7 +607,6 @@ function JobAnalysis({
             )}
           </div>
 
-          {/* Resume Preview */}
           <div
             className={`${
               activeDocument === "resume" ? "block" : "hidden"
@@ -682,7 +621,6 @@ function JobAnalysis({
             </div>
           </div>
 
-          {/* Cover Letter Preview */}
           {coverLetter && (
             <div
               className={`${
@@ -699,7 +637,6 @@ function JobAnalysis({
             </div>
           )}
 
-          {/* Action Buttons - ONLY APPEAR AFTER GENERATION */}
           <div className="flex gap-4 justify-center mb-8">
             <button
               onClick={onStartNewApplication}
@@ -753,7 +690,6 @@ function JobAnalysis({
             </button>
           </div>
 
-          {/* Success Message - MOVED HERE TO BE VISIBLE */}
           {saveSuccess && (
             <div className="max-w-4xl mx-auto mb-6 p-4 bg-emerald-900/50 border border-emerald-500 rounded-xl text-emerald-200 text-center">
               <p className="font-medium flex items-center justify-center gap-2">
@@ -775,7 +711,6 @@ function JobAnalysis({
         </div>
       )}
 
-      {/* Chat Interface - ONLY APPEARS AFTER GENERATION */}
       {activeDocument && !isLoading && !generatingCoverLetter && (
         <ChatInterface
           onSendMessage={handleSendMessage}

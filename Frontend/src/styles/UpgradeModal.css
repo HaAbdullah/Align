@@ -127,6 +127,50 @@
   border-bottom: none;
 }
 
+.test-card-info {
+  background: #374151;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.test-card-header {
+  margin-bottom: 10px;
+}
+
+.test-badge {
+  background: #10b981;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.test-card-details {
+  margin: 0;
+}
+
+.test-card-number {
+  color: #f3f4f6;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  margin: 8px 0;
+  letter-spacing: 1px;
+}
+
+.test-card-note {
+  color: #d1d5db;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;
