@@ -100,7 +100,7 @@ const SavedDocuments = () => {
 
   useEffect(() => {
     if (selectedDocument) {
-      renderDocumentInIframe(selectedDocument.html_content);
+      renderDocumentInIframe(selectedDocument);
     }
   }, [selectedDocument]);
 
@@ -218,14 +218,28 @@ const SavedDocuments = () => {
     }
   };
 
-  const renderDocumentInIframe = (htmlContent) => {
+  const renderDocumentInIframe = (document) => {
     const iframe = document.getElementById("document-preview");
-    if (!iframe || !htmlContent) return;
+    if (!iframe) return;
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    doc.open();
-    doc.write(htmlContent);
-    doc.close();
+    if (document.content_format === "latex" && document.pdf_content) {
+      // Render PDF blob directly in iframe
+      const binary = atob(document.pdf_content);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      iframe.src = url;
+      // Store url for cleanup on next render
+      iframe._blobUrl = url;
+    } else {
+      // Legacy HTML document
+      if (iframe._blobUrl) { URL.revokeObjectURL(iframe._blobUrl); iframe._blobUrl = null; }
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(document.html_content || "");
+      doc.close();
+    }
   };
 
   const favoriteDocument = async (documentId) => {
@@ -325,6 +339,20 @@ const SavedDocuments = () => {
 
   const downloadPDF = () => {
     if (!selectedDocument) return;
+
+    if (selectedDocument.content_format === "latex" && selectedDocument.pdf_content) {
+      const binary = atob(selectedDocument.pdf_content);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "resume.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
 
     try {
       const printWindow = window.open("", "_blank", "width=800,height=600");

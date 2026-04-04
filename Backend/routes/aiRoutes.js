@@ -12,22 +12,24 @@ const router = express.Router();
 
 /**
  * POST /api/create-resume
- * Generates a tailored resume using Claude AI
+ * Generates a tailored resume using the V2 pipeline:
+ * 5 parallel Haiku section calls → LaTeX build → pdflatex → Sonnet review
  */
 router.post(
   "/create-resume",
   validators.jobDescription,
   asyncHandler(async (req, res) => {
-    const { jobDescription } = req.body;
+    const { jobDescription, resumeText } = req.body;
 
-    console.log(`Resume generation request - Length: ${jobDescription.length}`);
+    console.log(`Resume V2 generation request - JD length: ${jobDescription.length}, resumeText length: ${(resumeText||'').length}`);
+    console.log(`FULL resumeText:\n${resumeText}`);
 
-    const result = await aiService.generateResume(jobDescription);
+    const result = await aiService.generateResumeV2(resumeText || "", jobDescription);
 
-    // Resume and cover letter need wrapped format for your existing frontend
     res.json({
       success: true,
-      data: result,
+      latex: result.latex,
+      pdf: result.pdf,
     });
   })
 );

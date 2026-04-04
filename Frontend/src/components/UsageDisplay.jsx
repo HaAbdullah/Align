@@ -49,14 +49,16 @@ const UsageDisplay = () => {
           </button>
         )}
 
-        {/* Demo button for interviewers */}
-        <button
-          className="reset-usage-btn"
-          onClick={resetUsage}
-          title="Demo feature - reset usage counter for presentation purposes"
-        >
-          Reset Usage (Demo)
-        </button>
+        {/* Demo button for interviewers — dev only */}
+        {import.meta.env.DEV && (
+          <button
+            className="reset-usage-btn"
+            onClick={resetUsage}
+            title="Demo feature - reset usage counter for presentation purposes"
+          >
+            Reset Usage (Demo)
+          </button>
+        )}
       </div>
     </div>
   );

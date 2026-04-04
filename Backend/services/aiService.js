@@ -7,6 +7,8 @@
 const fs = require("fs");
 const axios = require("axios");
 const { APIError } = require("../middleware/errorMiddleware");
+const { compile } = require("./latexService");
+const resumeBuilder = require("./resumeBuilder");
 
 class AIService {
   constructor() {
@@ -432,6 +434,227 @@ Focus on providing accurate, recent information. If specific data is not availab
       : this.systemPrompts.resume;
 
     return this.callClaudeAPI(systemPrompt, jobDescription);
+  }
+
+  /**
+   * Calls Claude with a given model (Haiku or Sonnet) and returns the text response.
+   * @private
+   */
+  async _callClaude(model, systemPrompt, userContent, maxTokens = 800) {
+    const response = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userContent }],
+      },
+      {
+        headers: {
+          "x-api-key": process.env.CLAUDE_API_KEY,
+          "Content-Type": "application/json",
+          "anthropic-version": "2023-06-01",
+        },
+        timeout: 60000,
+      }
+    );
+    return response.data.content.filter(p => p.type === "text").map(p => p.text).join("");
+  }
+
+  /**
+   * Parse JSON from a Claude response, stripping any markdown fences.
+   * @private
+   */
+  _parseJSON(text) {
+    // Strip markdown fences
+    let cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+
+    // Try direct parse first (fastest path)
+    try { return JSON.parse(cleaned); } catch (_) {}
+
+    // Find the first { or [ to determine JSON type
+    const startObj = cleaned.indexOf('{');
+    const startArr = cleaned.indexOf('[');
+    if (startObj === -1 && startArr === -1) throw new Error('Malformed JSON in response');
+
+    const isArr = startArr !== -1 && (startObj === -1 || startArr < startObj);
+    const start = isArr ? startArr : startObj;
+    const openChar = isArr ? '[' : '{';
+    const closeChar = isArr ? ']' : '}';
+
+    // Use brace-counting to find the true matching closing bracket,
+    // correctly skipping { } [ ] inside JSON string values.
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    let end = -1;
+
+    for (let i = start; i < cleaned.length; i++) {
+      const ch = cleaned[i];
+      if (escaped)          { escaped = false; continue; }
+      if (ch === '\\' && inString) { escaped = true;  continue; }
+      if (ch === '"')       { inString = !inString; continue; }
+      if (inString)         continue;
+      if (ch === openChar)  { depth++; }
+      else if (ch === closeChar) {
+        depth--;
+        if (depth === 0) { end = i; break; }
+      }
+    }
+
+    if (end !== -1) {
+      try { return JSON.parse(cleaned.slice(start, end + 1)); } catch (_) {}
+    }
+
+    // Fallback: the JSON may be truncated (hit token limit). Try the last
+    // occurrence of the closing char and work backwards from there.
+    let fallbackEnd = cleaned.lastIndexOf(closeChar);
+    while (fallbackEnd > start) {
+      try { return JSON.parse(cleaned.slice(start, fallbackEnd + 1)); } catch (_) {}
+      fallbackEnd = cleaned.lastIndexOf(closeChar, fallbackEnd - 1);
+    }
+
+    throw new Error('Malformed JSON in response');
+  }
+
+  /**
+   * V2: Generates resume using parallel Haiku section calls + Sonnet review.
+   * Returns { latex, pdf } where pdf is a base64-encoded string.
+   * @param {string} resumeText - Plain text of user's uploaded resume
+   * @param {string} jobDescription - Job description text
+   */
+  async generateResumeV2(resumeText, jobDescription) {
+    const HAIKU = "claude-haiku-4-5-20251001";
+    const SONNET = "claude-sonnet-4-6";
+
+    const context = `RESUME:\n${resumeText}\n\nJOB DESCRIPTION:\n${jobDescription}`;
+    // Experience and projects use resume-only context so Haiku cannot filter
+    // entries based on JD relevance (e.g. accounting JD vs CS resume).
+    const resumeOnlyContext = `RESUME:\n${resumeText}`;
+
+    // ── Section prompts ──────────────────────────────────────────────────────
+    // CRITICAL: Each prompt's ONLY job is data extraction → raw JSON output.
+    // No notes, no commentary, no qualifications inside JSON string values.
+
+    const headerPrompt = `You are a data extraction tool. Output ONLY raw JSON. No explanation, no markdown, no code fences, no commentary.
+
+Extract the candidate's contact information from the RESUME section.
+
+Output exactly this JSON shape:
+{"name":"Full Name","phone":"phone number","email":"email@example.com","linkedin":"linkedin URL or empty string","github":"github URL or empty string"}
+
+If a field is not found, use an empty string. Do not add any notes or comments inside the values.`;
+
+    const skillsPrompt = `You are a data extraction tool. Output ONLY raw JSON. No explanation, no markdown, no code fences, no commentary.
+
+Extract ALL technical skills from the RESUME section. Prioritise skills that also appear in the JOB DESCRIPTION.
+
+Output exactly this JSON shape (2-4 categories, each with concise single-item names):
+{"categories":[{"label":"Languages","items":["Python","JavaScript"]},{"label":"Frameworks & Libraries","items":["React","Node.js"]},{"label":"Tools & Platforms","items":["AWS","Docker","Git"]}]}
+
+Only include TECHNICAL skills (programming languages, frameworks, tools, databases, software). Do NOT include spoken/human languages (English, Spanish, etc.) — those are not technical skills. Do not fabricate. Do not add notes inside values.`;
+
+    const experiencePrompt = `You are a data extraction tool. Output ONLY raw JSON. No explanation, no markdown, no code fences, no commentary.
+
+Extract ALL work experience entries from the RESUME section. You MUST include every job listed regardless of whether it matches the job description.
+
+For each entry, copy the bullet points from the resume. Keep the strongest 3-4 bullets per job (prioritise those with metrics/numbers). You may tighten wording but never fabricate.
+
+Output exactly this JSON shape (most recent first):
+[{"company":"Company Name","title":"Job Title","startDate":"Mon YYYY","endDate":"Mon YYYY or Present","location":"City, State/Province","bullets":["Bullet text","Bullet text"]}]
+
+RULES:
+- ALWAYS output every job entry present in the RESUME — never return [] if jobs exist
+- Maximum 4 bullets per job entry
+- Never fabricate information
+- Do not add notes or comments inside JSON string values
+- Do not evaluate relevance to the job description — extract everything`;
+
+    const educationPrompt = `You are a data extraction tool. Output ONLY raw JSON. No explanation, no markdown, no code fences, no commentary.
+
+Extract ALL education entries from the RESUME section.
+
+Output exactly this JSON shape (most recent first):
+[{"school":"University Name","location":"City, Province/State","degree":"Degree — Major","dates":"Mon YYYY -- Mon YYYY","bullets":["Achievement or relevant coursework"]}]
+
+Rules:
+- For "dates": use format "Sep YYYY -- May YYYY", or "Expected Mon YYYY" if graduation is in the future, or just "YYYY -- YYYY" if only years are given
+- Use "bullets" only if the resume explicitly lists achievements, awards, GPA, or coursework for that entry
+- If no bullets, use an empty array for that entry
+- Do not add notes, qualifications, or commentary inside any JSON string value
+- Copy degree and school names exactly as they appear in the resume`;
+
+    const projectsPrompt = `You are a data extraction tool. Output ONLY raw JSON. No explanation, no markdown, no code fences, no commentary.
+
+Extract ALL projects from the "Projects" section of the RESUME. Include every project listed.
+
+A PROJECT is something listed under the "Projects" section heading.
+A PROJECT is NOT a job, internship, or co-op — those belong in Experience.
+
+Output exactly this JSON shape:
+[{"name":"Project Name","technologies":["React","Node.js"],"bullets":["What it does and its impact","Technical detail"]}]
+
+Rules:
+- Include ALL projects from the Projects section regardless of relevance to the job description
+- ONLY include entries under the "Projects" section — do NOT pull from Experience
+- Maximum 2 bullets per project
+- Never fabricate projects or technologies
+- If no Projects section exists in the resume, output an empty array: []
+- Do not add notes or comments inside JSON string values`;
+
+    // ── Run all 5 section calls in parallel ──────────────────────────────────
+    console.log("Starting parallel Haiku section calls...");
+    const [headerText, skillsText, experienceText, educationText, projectsText] =
+      await Promise.all([
+        this._callClaude(HAIKU, headerPrompt, context, 400),
+        this._callClaude(HAIKU, skillsPrompt, context, 800),
+        this._callClaude(HAIKU, experiencePrompt, resumeOnlyContext, 4000),
+        this._callClaude(HAIKU, educationPrompt, context, 800),
+        this._callClaude(HAIKU, projectsPrompt, resumeOnlyContext, 2000),
+      ]);
+    console.log("All section calls complete");
+    console.log("--- RAW HAIKU OUTPUTS ---");
+    console.log("HEADER:", headerText);
+    console.log("SKILLS:", skillsText);
+    console.log("EXPERIENCE:", experienceText);
+    console.log("EDUCATION:", educationText);
+    console.log("PROJECTS:", projectsText);
+    console.log("--- END RAW OUTPUTS ---");
+
+    // ── Parse JSON from each section ─────────────────────────────────────────
+    // Critical sections (header, skills, experience, education) throw on failure
+    // so the error is visible in logs. Projects is optional — silently falls back.
+    const parseSection = (name, text, fallback, optional = false) => {
+      try {
+        const parsed = this._parseJSON(text);
+        if (parsed === null || parsed === undefined) {
+          if (optional) { console.warn(`Section "${name}" returned null, using empty fallback`); return fallback; }
+          throw new Error(`Section "${name}" returned null/undefined`);
+        }
+        return parsed;
+      } catch (err) {
+        console.error(`JSON parse failed for section "${name}":`, err.message);
+        console.error(`  Raw output (first 600 chars): ${text.slice(0, 600)}`);
+        if (optional) { console.warn(`  Using empty fallback for optional section "${name}"`); return fallback; }
+        throw new Error(`Malformed JSON in ${name} section: ${err.message}`);
+      }
+    };
+    const header     = parseSection('header',     headerText,     { name: '', phone: '', email: '', linkedin: '', github: '' });
+    const skills     = parseSection('skills',     skillsText,     { categories: [] });
+    const experience = parseSection('experience', experienceText, []);
+    const education  = parseSection('education',  educationText,  []);
+    const projects   = parseSection('projects',   projectsText,   [], true);
+
+    // ── Build LaTeX body and compile ─────────────────────────────────────────
+    const body = resumeBuilder.buildAll({ header, skills, experience, education, projects });
+    console.log("📄 Compiling LaTeX...");
+    const { pdf: pdfBuffer, latex } = await compile(body);
+    console.log("✅ LaTeX compiled successfully");
+
+    return {
+      latex,
+      pdf: pdfBuffer.toString("base64"),
+    };
   }
 
   /**

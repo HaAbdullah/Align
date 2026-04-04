@@ -39,7 +39,8 @@ function JobAnalysis({
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
 
-  const [resumeHTML, setResumeHTML] = useState("");
+  const [resumeLatex, setResumeLatex] = useState("");
+  const [resumePdf, setResumePdf] = useState(""); // base64
   const [coverLetterHTML, setCoverLetterHTML] = useState("");
   const [savingDocument, setSavingDocument] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState("");
@@ -57,15 +58,13 @@ function JobAnalysis({
 
     const documentType =
       activeDocument === "resume" ? "resume" : "cover_letter";
-    const documentToSave =
-      activeDocument === "resume" ? resumeHTML : coverLetterHTML;
 
-    if (!documentToSave || documentToSave.trim() === "") {
-      setError(
-        `No ${
-          documentType === "resume" ? "resume" : "cover letter"
-        } to save. Please generate one first.`
-      );
+    if (activeDocument === "resume" && !resumeLatex) {
+      setError("No resume to save. Please generate one first.");
+      return;
+    }
+    if (activeDocument === "coverLetter" && !coverLetterHTML) {
+      setError("No cover letter to save. Please generate one first.");
       return;
     }
 
@@ -74,7 +73,11 @@ function JobAnalysis({
     setError("");
 
     try {
-      await saveDocument(currentUser.uid, documentType, documentToSave);
+      if (activeDocument === "resume") {
+        await saveDocument(currentUser.uid, documentType, resumeLatex, resumePdf, "latex");
+      } else {
+        await saveDocument(currentUser.uid, documentType, coverLetterHTML);
+      }
 
       setSaveSuccess(
         `${
@@ -94,53 +97,44 @@ function JobAnalysis({
 
   const handleSendMessage = async (feedbackPrompt) => {
     try {
-      let response;
-
       if (activeDocument === "resume") {
-        response = await sendResumeFeedbackToClaude(feedbackPrompt);
+        const response = await sendResumeFeedbackToClaude(feedbackPrompt);
+        // Resume V2 returns { latex, pdf }
+        return { latex: response.latex, pdf: response.pdf };
       } else if (activeDocument === "coverLetter") {
-        response = await sendCoverLetterFeedbackToClaude(feedbackPrompt);
+        const response = await sendCoverLetterFeedbackToClaude(feedbackPrompt);
+        if (!response.data?.content?.[0]) throw new Error("Invalid response structure from API");
+        return response.data.content[0].text;
       } else {
         throw new Error("No active document selected");
       }
-
-      if (
-        !response.data ||
-        !response.data.content ||
-        !response.data.content[0]
-      ) {
-        throw new Error("Invalid response structure from API");
-      }
-
-      return response.data.content[0].text;
     } catch (error) {
       throw error;
     }
   };
 
-  const sendResumeFeedbackToClaude = async (prompt) => {
+  const sendResumeFeedbackToClaude = async (feedbackText) => {
     try {
       const isLocalhost = window.location.hostname === "localhost";
-
       const API_BASE_URL = isLocalhost
         ? "http://localhost:3000/api"
         : "https://align-vahq.onrender.com/api";
 
+      // Include the current latex source so the backend can revise it
+      const feedbackPrompt = `USER FEEDBACK: ${feedbackText}\n\nCURRENT RESUME (LaTeX):\n${resumeLatex}`;
+
       const response = await fetch(`${API_BASE_URL}/create-resume`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          jobDescription: prompt,
+          resumeText: resume,
+          jobDescription: feedbackPrompt,
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(
-          `Resume feedback API request failed (${response.status}): ${errorText}`
-        );
+        throw new Error(`Resume feedback API request failed (${response.status}): ${errorText}`);
       }
 
       return await response.json();
@@ -181,48 +175,22 @@ function JobAnalysis({
   };
 
   useEffect(() => {
-    if (!summary) return;
+    if (!resumePdf) return;
 
     const iframe = document.getElementById("summary-preview");
     if (!iframe) return;
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    const binary = atob(resumePdf);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    iframe.src = url;
 
-    doc.open();
+    if (!activeDocument) setActiveDocument("resume");
 
-    const styledContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body {
-          background-color: white !important;
-          color: black !important;
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          margin: 20px;
-          padding: 0;
-        }
-        * {
-          background-color: inherit !important;
-          color: inherit !important;
-        }
-      </style>
-    </head>
-    <body>
-      ${summary}
-    </body>
-    </html>
-  `;
-
-    doc.write(styledContent);
-    doc.close();
-
-    if (!activeDocument) {
-      setActiveDocument("resume");
-    }
-  }, [summary, activeDocument]);
+    return () => URL.revokeObjectURL(url);
+  }, [resumePdf]);
 
   useEffect(() => {
     if (!coverLetter) return;
@@ -276,36 +244,47 @@ function JobAnalysis({
     setError("");
     setSummary("");
     setCoverLetter("");
-    setResumeHTML("");
+    setResumeLatex("");
+    setResumePdf("");
     setActiveDocument(null);
 
-    let createdPrompt =
-      "RESUME\n" + resume + "\nJOB DESCRIPTION\n" + jobDescriptionInput;
-    setFinalClaudePrompt(createdPrompt);
+    setFinalClaudePrompt(jobDescriptionInput);
 
     try {
-      const response = await sendJobDescriptionToClaude(createdPrompt);
+      const isLocalhost = window.location.hostname === "localhost";
+      const API_BASE_URL = isLocalhost
+        ? "http://localhost:3000/api"
+        : "https://align-vahq.onrender.com/api";
 
-      if (
-        !response.data ||
-        !response.data.content ||
-        !response.data.content[0]
-      ) {
-        throw new Error("Invalid response structure from API");
+      console.log("=== RESUME GENERATION DEBUG ===");
+      console.log("resumeText length:", resume?.length);
+      console.log("resumeText first 300 chars:", resume?.slice(0, 300));
+      console.log("jobDescription length:", jobDescriptionInput?.length);
+      const response = await fetch(`${API_BASE_URL}/create-resume`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText: resume,
+          jobDescription: jobDescriptionInput,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Resume generation failed (${response.status}): ${errorText}`);
       }
 
-      const fullText = response.data.content
-        .filter((part) => part.type === "text")
-        .map((part) => part.text)
-        .join("");
+      const data = await response.json();
+      if (!data.pdf || !data.latex) throw new Error("Invalid response from server");
 
-      setSummary(fullText);
-      setResumeHTML(fullText);
+      setSummary(data.latex); // keep summary populated so tabs show
+      setResumeLatex(data.latex);
+      setResumePdf(data.pdf);
 
       setJobDescription(jobDescriptionInput);
       setIsJobDescriptionSubmitted(true);
       if (setAnalysisResults) {
-        setAnalysisResults(fullText);
+        setAnalysisResults(data.latex);
       }
 
       if (isAuthenticated) {
@@ -396,42 +375,54 @@ function JobAnalysis({
     }
   };
 
-  const downloadPDF = (content, type) => {
+  const downloadPDF = (type) => {
     if (!isAuthenticated) {
       setShowAuthPrompt(true);
       return;
     }
 
-    if (!content) return;
-
-    try {
-      const printWindow = window.open("", "_blank", "width=800,height=600");
-
-      if (!printWindow) {
-        alert("Pop-up blocked! Please allow pop-ups for this site.");
-        return;
-      }
-
-      printWindow.document.open();
-      printWindow.document.write(content);
-      printWindow.document.close();
-
-      printWindow.onload = () => {
-        printWindow.focus();
-        printWindow.print();
-
-        printWindow.onafterprint = () => {
-          printWindow.close();
+    if (type === "resume") {
+      if (!resumePdf) return;
+      const binary = atob(resumePdf);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "resume.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      // Cover letter — still HTML, use print window
+      const content = coverLetter;
+      if (!content) return;
+      try {
+        const printWindow = window.open("", "_blank", "width=800,height=600");
+        if (!printWindow) { alert("Pop-up blocked! Please allow pop-ups for this site."); return; }
+        printWindow.document.open();
+        printWindow.document.write(content);
+        printWindow.document.close();
+        printWindow.onload = () => {
+          printWindow.focus();
+          printWindow.print();
+          printWindow.onafterprint = () => printWindow.close();
         };
-      };
-    } catch (err) {
-      alert(`An error occurred while printing the ${type}.`);
+      } catch (err) {
+        alert("An error occurred while printing the cover letter.");
+      }
     }
   };
 
   const handleUpdateResume = (newContent) => {
-    setSummary(newContent);
-    setResumeHTML(newContent);
+    if (newContent && typeof newContent === "object" && newContent.latex) {
+      setSummary(newContent.latex);
+      setResumeLatex(newContent.latex);
+      setResumePdf(newContent.pdf);
+    } else {
+      // fallback for plain text (shouldn't happen for resumes)
+      setSummary(newContent);
+    }
   };
 
   const handleUpdateCoverLetter = (newContent) => {
@@ -677,12 +668,7 @@ function JobAnalysis({
             </button>
 
             <button
-              onClick={() =>
-                downloadPDF(
-                  activeDocument === "resume" ? summary : coverLetter,
-                  activeDocument === "resume" ? "resume" : "cover letter"
-                )
-              }
+              onClick={() => downloadPDF(activeDocument === "resume" ? "resume" : "cover letter")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
             >
               <img src={downloadIcon} alt="Download" className="w-5 h-5" />
@@ -724,7 +710,7 @@ function JobAnalysis({
           currentDocumentType={
             activeDocument === "resume" ? "resume" : "cover letter"
           }
-          currentDocument={activeDocument === "resume" ? summary : coverLetter}
+          currentDocument={activeDocument === "resume" ? resumeLatex : coverLetter}
           onUpdateDocument={
             activeDocument === "resume"
               ? handleUpdateResume

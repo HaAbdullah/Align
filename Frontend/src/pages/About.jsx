@@ -442,7 +442,7 @@ const AboutPage = () => {
 
                       {/* Email */}
                       <a
-                        href="mailto:abdullah.hasanjee@gmail.com"
+                        href="mailto:hasanjeenterprise@gmail.com"
                         className="group relative bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 hover:border-emerald-400 text-emerald-300 hover:text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105 inline-flex items-center gap-3"
                       >
                         <svg

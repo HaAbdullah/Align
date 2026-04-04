@@ -410,8 +410,6 @@ const Dashboard = () => {
                       Upgrade Plan
                     </button>
                   )}
-
-                  {/* Fixed: Use hasActiveSubscription() to determine if cancel button should show */}
                   {hasActiveSubscription() && userTier !== "FREEMIUM" && (
                     <button
                       onClick={() => setShowCancelModal(true)}

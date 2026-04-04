@@ -22,18 +22,31 @@ const PricingPage = () => {
       sessionStorage.setItem("selectedPlan", planName);
       sessionStorage.setItem("selectedBillingCycle", billingCycle);
 
-      const priceIds = {
+      const priceIds = import.meta.env.DEV ? {
         Basic: {
-          monthly: "price_1Ra3pUA3sCBSHclD2iDiFeOK",
-          yearly: "none",
+          monthly: "price_1TGRHE4NX040yqyNRS1uEUnS",
+          yearly: "price_1TGRHE4NX040yqyNzGXWOEzd",
         },
         Premium: {
-          monthly: "price_1Ra3phA3sCBSHclDcgaWJ9cz",
-          yearly: "none",
+          monthly: "price_1TGRHF4NX040yqyNLjqCjMhn",
+          yearly: "price_1TGRHF4NX040yqyNvJuVWoil",
         },
         "Premium+": {
-          monthly: "price_1Ra3pxA3sCBSHclD99cjEjee",
-          yearly: "none",
+          monthly: "price_1TGRHG4NX040yqyN0YCzD5z5",
+          yearly: "price_1TGRHG4NX040yqyNUPVI30NN",
+        },
+      } : {
+        Basic: {
+          monthly: "price_1TGNNQ6ObQYFnQrGUKvFvaRK",
+          yearly: "price_1TGNNP6ObQYFnQrGMJlAfIz1",
+        },
+        Premium: {
+          monthly: "price_1TGNNP6ObQYFnQrGS2OGbiDF",
+          yearly: "price_1TGNNO6ObQYFnQrGKXqh4Kwr",
+        },
+        "Premium+": {
+          monthly: "price_1TGNNN6ObQYFnQrGJNdbSD4X",
+          yearly: "price_1TGNNN6ObQYFnQrGa55khyIf",
         },
       };
 
@@ -465,27 +478,29 @@ const PricingPage = () => {
             ))}
           </div>
 
-          {/* Test Card Info */}
-          <div className="mt-16 max-w-2xl mx-auto">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700 border border-green-200 dark:border-emerald-600 rounded-xl p-6 text-center">
-              <div className="flex justify-center mb-3">
-                <span className="bg-green-700 dark:bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
-                  Demo Test Card
-                </span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                For Interviewers & Demo Access
-              </h3>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3 inline-block">
-                <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white tracking-wider">
-                  4242 4242 4242 4242
+          {/* Test Card Info — dev only */}
+          {import.meta.env.DEV && (
+            <div className="mt-16 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700 border border-green-200 dark:border-emerald-600 rounded-xl p-6 text-center">
+                <div className="flex justify-center mb-3">
+                  <span className="bg-green-700 dark:bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+                    Demo Test Card
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  For Interviewers & Demo Access
+                </h3>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3 inline-block">
+                  <p className="text-2xl font-mono font-bold text-gray-900 dark:text-white tracking-wider">
+                    4242 4242 4242 4242
+                  </p>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Use any expiry date, CVC, and ZIP code for free upgrade access
                 </p>
               </div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Use any expiry date, CVC, and ZIP code for free upgrade access
-              </p>
             </div>
-          </div>
+          )}
 
           {/* FAQ Section */}
           <div className="mt-20 max-w-4xl mx-auto">

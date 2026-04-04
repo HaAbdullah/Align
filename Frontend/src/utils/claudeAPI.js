@@ -172,7 +172,7 @@ export const sendJobDescriptionForQuestions = async (jobDescription) => {
  * @param {string} htmlContent - The complete HTML content of the document
  * @returns {Promise} - Response from save API
  */
-export const saveDocument = async (firebaseUid, documentType, htmlContent) => {
+export const saveDocument = async (firebaseUid, documentType, htmlContent, pdfContent = null, contentFormat = "html") => {
   try {
     console.log(`Saving ${documentType} for user: ${firebaseUid}`);
 
@@ -191,6 +191,8 @@ export const saveDocument = async (firebaseUid, documentType, htmlContent) => {
         firebaseUid,
         documentType,
         htmlContent,
+        pdfContent,
+        contentFormat,
       }),
     });
 

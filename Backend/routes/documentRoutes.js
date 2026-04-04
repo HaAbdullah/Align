@@ -184,7 +184,7 @@ router.get(
 router.post(
   "/save",
   asyncHandler(async (req, res) => {
-    const { firebaseUid, documentType, htmlContent } = req.body;
+    const { firebaseUid, documentType, htmlContent, pdfContent = null, contentFormat = "html" } = req.body;
 
     // Validation
     if (!firebaseUid || !documentType || !htmlContent) {
@@ -222,6 +222,8 @@ router.post(
         firebaseUid,
         documentType,
         htmlContent,
+        pdfContent,
+        contentFormat,
       });
 
       console.log(`📤 Document saved with ID: ${savedDocument.id}`);

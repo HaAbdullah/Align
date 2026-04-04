@@ -11,30 +11,43 @@ GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/buil
  */
 export const extractTextFromPDF = async (file) => {
   try {
-    // Read the file as ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
-
-    // Load the PDF document
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pageTexts = [];
 
-    // Get the total number of pages
-    const totalPages = pdf.numPages;
-    const textPromises = [];
-
-    // Extract text from each page
-    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
 
-      // Concatenate the text items from the page
-      const pageText = textContent.items.map((item) => item.str).join(" ");
+      // Group text items by their Y position so line structure is preserved.
+      // Without this, all items are joined with spaces into one blob and Haiku
+      // cannot distinguish section headers, job titles, dates, or bullet points.
+      const lineMap = new Map();
+      for (const item of textContent.items) {
+        // item.str is undefined on MarkedContent items — skip those
+        if (!item.str || !item.str.trim() || !item.transform) continue;
+        // Round Y to the nearest integer to group items on the same visual line
+        const y = Math.round(item.transform[5]);
+        if (!lineMap.has(y)) lineMap.set(y, []);
+        lineMap.get(y).push({ x: item.transform[4], text: item.str });
+      }
 
-      textPromises.push(pageText);
+      // Sort lines top-to-bottom (PDF Y coords are bottom-up, so descending = top first)
+      const lines = [...lineMap.entries()]
+        .sort((a, b) => b[0] - a[0])
+        .map(([, items]) =>
+          items
+            .sort((a, b) => a.x - b.x)
+            .map((i) => i.text)
+            .join(" ")
+            .trim()
+        )
+        .filter((line) => line.length > 0);
+
+      pageTexts.push(lines.join("\n"));
     }
 
-    // Combine text from all pages
-    const fullText = textPromises.join("\n");
-    return fullText;
+    return pageTexts.join("\n\n");
   } catch (error) {
     console.error("Error extracting text from PDF:", error);
     throw error;

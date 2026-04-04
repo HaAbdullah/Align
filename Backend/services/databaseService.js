@@ -347,25 +347,32 @@ class DatabaseService {
 
       // Get documents with pagination
       const documentsQuery = `
-        SELECT 
+        SELECT
           id,
           user_id,
           document_type,
           html_content,
+          pdf_content,
+          content_format,
           created_at,
           -- Add computed fields for frontend
-          CASE 
+          CASE
             WHEN document_type = 'resume' THEN '📄 Resume'
             WHEN document_type = 'cover_letter' THEN '📝 Cover Letter'
             ELSE document_type
           END as display_type,
-          -- Extract title from HTML if possible
-          CASE 
-            WHEN html_content LIKE '%<title>%</title>%' THEN 
+          -- Extract title: latex docs use \scshape name, html docs use <title>
+          CASE
+            WHEN COALESCE(content_format, 'html') = 'latex' THEN
+              COALESCE(
+                SUBSTRING(html_content FROM '\\\\scshape ([^\}\\\\]+)'),
+                'Resume'
+              )
+            WHEN html_content LIKE '%<title>%</title>%' THEN
               SUBSTRING(html_content FROM '<title>(.*?)</title>')
             ELSE 'Untitled Document'
           END as extracted_title
-        FROM recent_documents 
+        FROM recent_documents
         ${whereClause}
         ORDER BY created_at DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -551,7 +558,7 @@ class DatabaseService {
   /**
    * Save a new document to recent_documents
    */
-  async saveDocument({ firebaseUid, documentType, htmlContent }) {
+  async saveDocument({ firebaseUid, documentType, htmlContent, pdfContent = null, contentFormat = 'html' }) {
     const client = await this.pool.connect();
 
     try {
@@ -560,19 +567,19 @@ class DatabaseService {
       console.log(`Saving document for: ${firebaseUid}`);
 
       // 1. Insert new document
+      // pdf_content and content_format columns added via migration
       const insertQuery = `
-        INSERT INTO recent_documents (user_id, document_type, html_content, created_at)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+        INSERT INTO recent_documents (user_id, document_type, html_content, pdf_content, content_format, created_at)
+        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
         RETURNING *
       `;
-
-      // Escape single quotes in HTML content
-      const escapedHtmlContent = htmlContent.replace(/'/g, "''");
 
       const insertResult = await client.query(insertQuery, [
         firebaseUid,
         documentType,
-        escapedHtmlContent,
+        htmlContent,
+        pdfContent,
+        contentFormat,
       ]);
 
       const savedDocument = insertResult.rows[0];
@@ -655,8 +662,8 @@ class DatabaseService {
       }
 
       const insertFavoriteQuery = `
-        INSERT INTO favorited_documents (user_id, document_type, html_content, favorited_at)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+        INSERT INTO favorited_documents (user_id, document_type, html_content, pdf_content, content_format, favorited_at)
+        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
         RETURNING *
       `;
 
@@ -664,6 +671,8 @@ class DatabaseService {
         firebaseUid,
         document.document_type,
         document.html_content,
+        document.pdf_content || null,
+        document.content_format || 'html',
       ]);
 
       await client.query("COMMIT");

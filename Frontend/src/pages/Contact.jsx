@@ -98,10 +98,10 @@ const Contact = () => {
                   Reach us anytime at:
                 </p>
                 <a
-                  href="mailto:abdullah.hasanjee@gmail.com"
+                  href="mailto:hasanjeenterprise@gmail.com"
                   className="text-xl font-semibold text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text hover:underline"
                 >
-                  📧 abdullah.hasanjee@gmail.com
+                  📧 hasanjeenterprise@gmail.com
                 </a>
                 <p className="mt-4 text-gray-400">
                   We usually respond within 24 hours.

@@ -361,7 +361,7 @@ const Success = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
-                  href="mailto:support@align.com"
+                  href="mailto:hasanjeenterprise@gmail.com"
                   className="text-green-700 dark:text-emerald-400 hover:text-green-800 dark:hover:text-emerald-300 font-medium underline"
                 >
                   Contact Support
