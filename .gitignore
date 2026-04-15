@@ -1,5 +1,15 @@
+# Dependencies (never commit — platform installs its own)
+node_modules/
+
 # Local Netlify folder
 .netlify
 
 # Claude Code settings
 .claude
+.playright-mcp
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.production
+.env.*.local
