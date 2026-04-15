@@ -1,50 +1,32 @@
-/**
- * Stripe Service with PostgreSQL Integration - FIXED VERSION
- * Handles all Stripe-related business logic and PostgreSQL user updates
- */
-
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { APIError } = require("../middleware/errorMiddleware");
-const { Pool } = require("pg");
+const { connectDB } = require("../db");
+const User = require("../models/User");
 
-// PostgreSQL connection (matching your setup)
-const pool = new Pool({
-  user: "postgres",
-  host: "align-postgres-db.cpk4oao6u9lf.us-east-2.rds.amazonaws.com",
-  database: "align_db",
-  password: process.env.DB_PASSWORD,
-  port: 5432,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+const TIER_LIMITS = {
+  FREEMIUM: 2,
+  BASIC: 5,
+  PREMIUM: 10,
+  PREMIUM_PLUS: -1,
+};
 
 class StripeService {
   constructor() {
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error("STRIPE_SECRET_KEY environment variable is required");
     }
-    console.log("✅ StripeService initialized with PostgreSQL connection");
+    connectDB().catch((err) => console.error("❌ DB connection failed:", err));
+    console.log("✅ StripeService initialized");
   }
 
   /**
-   * Updates user tier in PostgreSQL after successful payment
-   * ✅ FIXED: Extract email from Stripe customer data and use correct customer ID format
+   * Updates user tier in MongoDB after successful payment.
+   * Uses upsert so it works whether or not the user already exists.
    */
-  async updateUserTier(
-    userId,
-    planName,
-    subscriptionId = null,
-    customerData = null
-  ) {
+  async updateUserTier(userId, planName, subscriptionId = null, customerData = null) {
     try {
-      console.log(`🔄 Attempting to update user tier for ${userId}`);
-      console.log(`📋 Plan: ${planName}, Subscription: ${subscriptionId}`);
+      console.log(`🔄 Updating user tier for ${userId} — plan: ${planName}`);
 
-      // Map plan names to tier levels (matching your TIERS)
       const tierMapping = {
         Basic: "BASIC",
         Premium: "PREMIUM",
@@ -54,17 +36,6 @@ class StripeService {
 
       const tier = tierMapping[planName] || "BASIC";
 
-      // Map tiers to limits (matching your TIERS config)
-      const tierLimits = {
-        FREEMIUM: 2,
-        BASIC: 5,
-        PREMIUM: 10,
-        PREMIUM_PLUS: -1, // Unlimited
-      };
-
-      const generationLimit = tierLimits[tier] || 5;
-
-      // ✅ FIX: Extract customer ID and email properly
       let customerId = null;
       let customerEmail = null;
 
@@ -77,100 +48,30 @@ class StripeService {
         }
       }
 
-      console.log(`📋 Customer ID: ${customerId}, Email: ${customerEmail}`);
-
-      // First, check if user exists
-      const checkUserQuery =
-        "SELECT id, email FROM users WHERE firebase_uid = $1";
-      const userResult = await pool.query(checkUserQuery, [userId]);
-
-      let query;
-      let values;
-
-      if (userResult.rows.length === 0) {
-        // ✅ FIX: User doesn't exist, create them with email from Stripe customer
-        console.log(`📝 User doesn't exist, creating new user for ${userId}`);
-
-        if (!customerEmail) {
-          throw new Error("Cannot create user without email address");
-        }
-
-        query = `
-          INSERT INTO users (
-            firebase_uid, 
-            email,
-            subscription_tier, 
-            monthly_generations_limit,
-            monthly_generations_used,
-            stripe_subscription_id, 
-            stripe_customer_id, 
-            subscription_status,
-            subscription_start_date,
-            created_at, 
-            updated_at
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-          RETURNING id
-        `;
-        values = [
-          userId,
-          customerEmail, // ✅ FIX: Include email
-          tier,
-          generationLimit,
-          0,
-          subscriptionId,
-          customerId, // ✅ FIX: Use just the ID string
-          "active",
-        ];
-      } else {
-        // User exists, update them (this is the normal case)
-        console.log(`📝 User exists, updating user ${userId}`);
-        query = `
-          UPDATE users 
-          SET subscription_tier = $2, 
-              monthly_generations_limit = $3,
-              stripe_subscription_id = $4,
-              stripe_customer_id = $5,
-              subscription_status = $6,
-              subscription_start_date = CURRENT_TIMESTAMP,
-              updated_at = CURRENT_TIMESTAMP
-          WHERE firebase_uid = $1
-          RETURNING id
-        `;
-        values = [
-          userId,
-          tier,
-          generationLimit,
-          subscriptionId,
-          customerId, // ✅ FIX: Use just the ID string
-          "active",
-        ];
-      }
-
-      console.log(`📤 Executing PostgreSQL query:`, {
-        query: query.replace(/\s+/g, " "),
-        values: values,
-      });
-
-      const result = await pool.query(query, values);
-
-      console.log(
-        `✅ Successfully updated user ${userId} to ${tier} tier (plan: ${planName})`
+      await User.findOneAndUpdate(
+        { firebase_uid: userId },
+        {
+          $set: {
+            subscription_tier: tier,
+            monthly_generations_limit: TIER_LIMITS[tier],
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            subscription_status: "active",
+            subscription_start_date: new Date(),
+          },
+          $setOnInsert: {
+            firebase_uid: userId,
+            email: customerEmail,
+            monthly_generations_used: 0,
+          },
+        },
+        { upsert: true, returnDocument: 'after' }
       );
 
-      // Verify the update worked
-      const verifyQuery =
-        "SELECT subscription_tier, monthly_generations_limit, subscription_status FROM users WHERE firebase_uid = $1";
-      const verifyResult = await pool.query(verifyQuery, [userId]);
-      console.log(
-        `🔍 Verification - User data after update:`,
-        verifyResult.rows[0]
-      );
-
+      console.log(`✅ User ${userId} updated to ${tier}`);
       return true;
     } catch (error) {
       console.error(`❌ Failed to update user tier for ${userId}:`, error);
-      console.error(`❌ Error details:`, error.message);
       throw new APIError(`Failed to update user tier: ${error.message}`, 500);
     }
   }
@@ -180,19 +81,19 @@ class StripeService {
    */
   async downgradeUserToFreemium(userId) {
     try {
-      const query = `
-        UPDATE users 
-        SET subscription_tier = 'FREEMIUM', 
-            monthly_generations_limit = 2,
-            subscription_status = 'cancelled',
-            stripe_subscription_id = NULL,
-            stripe_customer_id = NULL,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE firebase_uid = $1
-      `;
-
-      await pool.query(query, [userId]);
-      console.log(`✅ Downgraded user ${userId} to freemium tier`);
+      await User.findOneAndUpdate(
+        { firebase_uid: userId },
+        {
+          $set: {
+            subscription_tier: "FREEMIUM",
+            monthly_generations_limit: 2,
+            subscription_status: "cancelled",
+            stripe_subscription_id: null,
+            stripe_customer_id: null,
+          },
+        }
+      );
+      console.log(`✅ Downgraded user ${userId} to freemium`);
       return true;
     } catch (error) {
       console.error(`❌ Failed to downgrade user ${userId}:`, error);
@@ -205,26 +106,20 @@ class StripeService {
    */
   async findUserByCustomerId(customerId) {
     try {
-      const query =
-        "SELECT firebase_uid, subscription_tier, monthly_generations_limit FROM users WHERE stripe_customer_id = $1";
-      const result = await pool.query(query, [customerId]);
+      const user = await User.findOne({ stripe_customer_id: customerId }).lean();
 
-      if (result.rows.length === 0) {
+      if (!user) {
         console.log(`⚠️ No user found for customer ID: ${customerId}`);
         return null;
       }
 
-      const user = result.rows[0];
       return {
         userId: user.firebase_uid,
         tier: user.subscription_tier,
         limit: user.monthly_generations_limit,
       };
     } catch (error) {
-      console.error(
-        `❌ Error finding user by customer ID ${customerId}:`,
-        error
-      );
+      console.error(`❌ Error finding user by customer ID ${customerId}:`, error);
       return null;
     }
   }
@@ -244,10 +139,8 @@ class StripeService {
       req.get("host")?.includes("localhost") ||
       req.headers.origin?.includes("localhost");
 
-    let frontendUrl =
-      isLocalhost && localhostUrl
-        ? localhostUrl
-        : productionUrl || frontendUrls[0];
+    const frontendUrl =
+      isLocalhost && localhostUrl ? localhostUrl : productionUrl || frontendUrls[0];
 
     return frontendUrl?.replace(/\/$/, "");
   }
@@ -263,48 +156,28 @@ class StripeService {
         throw new APIError("Frontend URL configuration is missing", 500);
       }
 
-      console.log(
-        `💳 Creating checkout session for ${userEmail} - Plan: ${planName} - User: ${userId}`
-      );
+      console.log(`💳 Creating checkout session for ${userEmail} — plan: ${planName}`);
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
+        line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
         success_url: `${frontendUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${frontendUrl}/pricing`,
         customer_email: userEmail,
-        metadata: {
-          userId: userId,
-          planName: planName,
-        },
+        metadata: { userId, planName },
         billing_address_collection: "auto",
         subscription_data: {
           trial_period_days: 7,
-          metadata: {
-            userId: userId,
-            planName: planName,
-          },
+          metadata: { userId, planName },
         },
       });
 
       console.log(`✅ Checkout session created: ${session.id}`);
-
-      return {
-        sessionId: session.id,
-        url: session.url,
-      };
+      return { sessionId: session.id, url: session.url };
     } catch (error) {
       console.error("❌ Stripe checkout session creation failed:", error);
-      throw new APIError(
-        `Failed to create checkout session: ${error.message}`,
-        500
-      );
+      throw new APIError(`Failed to create checkout session: ${error.message}`, 500);
     }
   }
 
@@ -341,24 +214,13 @@ class StripeService {
 
   /**
    * Verifies a completed checkout session and updates user tier
-   * ✅ FIXED: Better error handling and customer data extraction
    */
   async verifySession(sessionId) {
     try {
-      console.log(`🔍 Starting session verification for: ${sessionId}`);
+      console.log(`🔍 Verifying session: ${sessionId}`);
 
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ["line_items", "customer", "subscription"],
-      });
-
-      console.log(`📋 Session details:`, {
-        id: session.id,
-        payment_status: session.payment_status,
-        planName: session.metadata?.planName,
-        userId: session.metadata?.userId,
-        customer_email:
-          session.customer?.email || session.customer_details?.email,
-        customer_id: session.customer?.id || session.customer,
       });
 
       if (session.payment_status !== "paid") {
@@ -368,65 +230,45 @@ class StripeService {
       const planName = session.metadata?.planName || "Premium";
       const userId = session.metadata?.userId;
 
-      console.log(
-        `🔄 About to update user tier - User ID: ${userId}, Plan: ${planName}`
-      );
-
-      // ✅ FIX: Update user tier with proper customer data extraction
-      if (userId) {
-        console.log(`🚀 Calling updateUserTier...`);
-
-        // Extract customer data properly
-        const customerData = session.customer || session.customer_details;
-
-        await this.updateUserTier(
-          userId,
-          planName,
-          session.subscription?.id || session.subscription,
-          customerData
-        );
-        console.log(`✅ updateUserTier completed successfully`);
-      } else {
-        console.error(`❌ No user ID found in session metadata`);
+      if (!userId) {
         throw new APIError("No user ID found in session", 400);
       }
 
-      const verifiedSession = {
+      const customerData = session.customer || session.customer_details;
+      await this.updateUserTier(
+        userId,
+        planName,
+        session.subscription?.id || session.subscription,
+        customerData
+      );
+
+      console.log(`✅ Session verified for plan: ${planName}`);
+
+      return {
         id: session.id,
-        planName: planName,
+        planName,
         amount_total: session.amount_total,
         currency: session.currency,
         status: session.status,
         payment_status: session.payment_status,
-        customer_email:
-          session.customer?.email || session.customer_details?.email,
+        customer_email: session.customer?.email || session.customer_details?.email,
         customer_id: session.customer?.id || session.customer,
-        userId: userId,
+        userId,
         created: session.created,
         subscription_id: session.subscription?.id || session.subscription,
       };
-
-      console.log(
-        `✅ Session verified and user tier updated: ${sessionId} for plan: ${planName}`
-      );
-
-      return verifiedSession;
     } catch (error) {
       console.error("❌ Session verification failed:", error);
       throw new APIError(`Session verification failed: ${error.message}`, 400);
     }
   }
+
   async cancelSubscription({ userId, customerId, subscriptionId }) {
     try {
       let subscription;
 
-      console.log(
-        `🚫 Cancelling subscription - userId: ${userId}, customerId: ${customerId}, subscriptionId: ${subscriptionId}`
-      );
-
       if (subscriptionId) {
         subscription = await stripe.subscriptions.cancel(subscriptionId);
-        console.log(`✅ Cancelled subscription: ${subscriptionId}`);
       } else if (customerId) {
         const subscriptions = await stripe.subscriptions.list({
           customer: customerId,
@@ -437,24 +279,13 @@ class StripeService {
           throw new APIError("No active subscriptions found", 404);
         }
 
-        subscription = await stripe.subscriptions.cancel(
-          subscriptions.data[0].id
-        );
-        console.log(
-          `✅ Cancelled subscription: ${subscriptions.data[0].id} for customer: ${customerId}`
-        );
+        subscription = await stripe.subscriptions.cancel(subscriptions.data[0].id);
       } else {
-        throw new APIError(
-          "Either customerId or subscriptionId is required",
-          400
-        );
+        throw new APIError("Either customerId or subscriptionId is required", 400);
       }
 
-      // ✅ FIX: Update PostgreSQL database after successful Stripe cancellation
       if (userId) {
-        console.log(`🔄 Downgrading user ${userId} to freemium...`);
         await this.downgradeUserToFreemium(userId);
-        console.log(`✅ User ${userId} downgraded to freemium`);
       }
 
       return {
@@ -467,43 +298,26 @@ class StripeService {
         },
       };
     } catch (error) {
-      console.error("❌ Subscription cancellation failed:", error);
-
-      // ✅ FIX: Handle case where subscription might already be cancelled
       if (
-        (error.message.includes("No subscription found") ||
-          error.message.includes("already canceled") ||
-          error.message.includes("No active subscriptions found")) &&
+        (error.message?.includes("No subscription found") ||
+          error.message?.includes("already canceled") ||
+          error.message?.includes("No active subscriptions found")) &&
         userId
       ) {
-        console.log(
-          "⚠️ Subscription already cancelled in Stripe, updating database only"
-        );
-
-        try {
-          await this.downgradeUserToFreemium(userId);
-          return {
-            success: true,
-            message:
-              "User downgraded to freemium (subscription was already cancelled)",
-          };
-        } catch (dbError) {
-          console.error("❌ Failed to downgrade user:", dbError);
-          throw new APIError(
-            `Failed to update user status: ${dbError.message}`,
-            500
-          );
-        }
+        console.log("⚠️ Subscription already cancelled in Stripe, updating DB only");
+        await this.downgradeUserToFreemium(userId);
+        return {
+          success: true,
+          message: "User downgraded to freemium (subscription was already cancelled)",
+        };
       }
 
-      throw new APIError(
-        `Failed to cancel subscription: ${error.message}`,
-        500
-      );
+      throw new APIError(`Failed to cancel subscription: ${error.message}`, 500);
     }
   }
+
   /**
-   * Processes Stripe webhook events with PostgreSQL updates
+   * Processes Stripe webhook events
    */
   async processWebhookEvent(rawBody, signature) {
     try {
@@ -516,83 +330,57 @@ class StripeService {
       console.log(`📧 Webhook received: ${event.type}`);
 
       switch (event.type) {
-        case "checkout.session.completed":
+        case "checkout.session.completed": {
           const session = event.data.object;
-          console.log("💰 Payment succeeded:", session.id);
-
-          // Update user subscription in PostgreSQL
           if (session.metadata?.userId && session.metadata?.planName) {
-            console.log(
-              `🔄 Webhook updating user tier: ${session.metadata.userId} to ${session.metadata.planName}`
-            );
             await this.updateUserTier(
               session.metadata.userId,
               session.metadata.planName,
               session.subscription,
               session.customer
             );
-          } else {
-            console.warn("⚠️ Missing user metadata in session:", session.id);
           }
           break;
+        }
 
-        case "invoice.payment_succeeded":
-          console.log("💰 Recurring payment succeeded");
+        case "invoice.payment_succeeded": {
           const invoice = event.data.object;
-
-          // Find user by customer ID and extend subscription
           if (invoice.customer) {
             const user = await this.findUserByCustomerId(invoice.customer);
             if (user) {
-              // Update subscription status to ensure it's active
-              const query = `
-                UPDATE users 
-                SET subscription_status = 'active', 
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE firebase_uid = $1
-              `;
-              await pool.query(query, [user.userId]);
+              await User.findOneAndUpdate(
+                { firebase_uid: user.userId },
+                { $set: { subscription_status: "active" } }
+              );
               console.log(`✅ Extended subscription for user: ${user.userId}`);
             }
           }
           break;
+        }
 
-        case "customer.subscription.deleted":
-          console.log("❌ Subscription cancelled");
+        case "customer.subscription.deleted": {
           const deletedSubscription = event.data.object;
-
-          // Find user by customer ID and downgrade to freemium
           if (deletedSubscription.customer) {
-            const user = await this.findUserByCustomerId(
-              deletedSubscription.customer
-            );
-            if (user) {
-              await this.downgradeUserToFreemium(user.userId);
-            }
+            const user = await this.findUserByCustomerId(deletedSubscription.customer);
+            if (user) await this.downgradeUserToFreemium(user.userId);
           }
           break;
+        }
 
-        case "invoice.payment_failed":
-          console.log("❌ Payment failed");
+        case "invoice.payment_failed": {
           const failedInvoice = event.data.object;
-
-          // Update user status to reflect payment failure
           if (failedInvoice.customer) {
-            const user = await this.findUserByCustomerId(
-              failedInvoice.customer
-            );
+            const user = await this.findUserByCustomerId(failedInvoice.customer);
             if (user) {
-              const query = `
-                UPDATE users 
-                SET subscription_status = 'past_due',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE firebase_uid = $1
-              `;
-              await pool.query(query, [user.userId]);
+              await User.findOneAndUpdate(
+                { firebase_uid: user.userId },
+                { $set: { subscription_status: "past_due" } }
+              );
               console.log(`⚠️ Marked user as past due: ${user.userId}`);
             }
           }
           break;
+        }
 
         default:
           console.log(`❓ Unhandled event type: ${event.type}`);

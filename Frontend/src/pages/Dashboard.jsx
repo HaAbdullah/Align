@@ -31,16 +31,6 @@ const Dashboard = () => {
     isLoading: contextLoading,
     TIERS,
   } = useUsage();
-  console.log(
-    "Stripe customer ID:",
-    localStorage.getItem(`stripe_customer_${currentUser?.uid}`)
-  );
-  console.log(
-    "Stripe subscription ID:",
-    localStorage.getItem(`stripe_subscription_${currentUser?.uid}`)
-  );
-  console.log("hasActiveSubscription result:", hasActiveSubscription());
-  console.log("userTier:", userTier);
   const [darkMode, setDarkMode] = useState(true);
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,59 +52,19 @@ const Dashboard = () => {
     }
   }, [currentUser]);
 
-  const fetchSubscriptionData = async () => {
-    try {
-      setLoading(true);
-
-      // First, get local subscription data
-      const localSubData = getSubscriptionData();
-
-      // If we have local subscription data, try to get detailed info from backend
-      if (localSubData?.hasSubscription) {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/subscription-status`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: currentUser.uid,
-              customerId: localSubData.customerId,
-              subscriptionId: localSubData.subscriptionId,
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setSubscriptionData(data);
-        } else {
-          // If backend call fails, use local data
-          setSubscriptionData({
-            customer_id: localSubData.customerId,
-            subscription_id: localSubData.subscriptionId,
-            status: userTier !== "FREEMIUM" ? "active" : "inactive",
-          });
-        }
-      } else {
-        // No subscription data
-        setSubscriptionData(null);
-      }
-    } catch (error) {
-      console.error("Error fetching subscription data:", error);
-      // Use local data as fallback
-      const localSubData = getSubscriptionData();
-      if (localSubData?.hasSubscription) {
-        setSubscriptionData({
-          customer_id: localSubData.customerId,
-          subscription_id: localSubData.subscriptionId,
-          status: userTier !== "FREEMIUM" ? "active" : "inactive",
-        });
-      }
-    } finally {
-      setLoading(false);
+  const fetchSubscriptionData = () => {
+    setLoading(true);
+    const localSubData = getSubscriptionData();
+    if (localSubData?.hasSubscription) {
+      setSubscriptionData({
+        customer_id: localSubData.customerId,
+        subscription_id: localSubData.subscriptionId,
+        status: userTier !== "FREEMIUM" ? "active" : "inactive",
+      });
+    } else {
+      setSubscriptionData(null);
     }
+    setLoading(false);
   };
 
   // Updated handleCancelSubscription function for Dashboard.js

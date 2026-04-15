@@ -62,7 +62,10 @@ const Contact = () => {
           {/* Left Side - Contact Info */}
           <div className="relative group">
             {/* Gradient border background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl opacity-0 transition-opacity duration-300"></div>
+            <div
+              className="
+            solute inset-0 bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl opacity-0 transition-opacity duration-300"
+            ></div>
 
             {/* Main content */}
             <div className="relative bg-gray-800 border-2 border-gray-600 rounded-xl p-8 transition-all duration-300 m-0.5">
@@ -101,7 +104,7 @@ const Contact = () => {
                   href="mailto:hasanjeenterprise@gmail.com"
                   className="text-xl font-semibold text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text hover:underline"
                 >
-                  📧 hasanjeenterprise@gmail.com
+                  📧 abdullah.hasanjee@gmail.com
                 </a>
                 <p className="mt-4 text-gray-400">
                   We usually respond within 24 hours.

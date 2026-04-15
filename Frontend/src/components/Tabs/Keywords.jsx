@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { sendJobDescriptionForKeywords } from "../../utils/claudeAPI";
 
 const Keywords = ({
@@ -16,6 +16,7 @@ const Keywords = ({
   const [keywordsData, setKeywordsData] = useState(cachedData || null);
   const [loading, setLoading] = useState(parentLoading || false);
   const [error, setError] = useState(parentError || null);
+  const hasFetched = useRef(false);
 
   // Sync with cached data when it changes
   useEffect(() => {
@@ -32,12 +33,13 @@ const Keywords = ({
     setError(parentError || null);
   }, [parentLoading, parentError]);
 
-  // Fetch data when component mounts if no cache exists
+  // Fetch data when component mounts if no cache exists — hasFetched prevents infinite retry on failure
   useEffect(() => {
-    if (jobDescription && analysisResults && !cachedData && !loading) {
+    if (jobDescription && analysisResults && !cachedData && !hasFetched.current) {
+      hasFetched.current = true;
       generateKeywordsAnalysis();
     }
-  }, [jobDescription, analysisResults, cachedData, loading]);
+  }, [jobDescription, analysisResults, cachedData]);
 
   const generateKeywordsAnalysis = async () => {
     if (!jobDescription || !analysisResults) {

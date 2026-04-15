@@ -1,0 +1,16 @@
+[     794ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b9af62b4:17986
+[     862ms] [LOG] TabsContainer Props: {resumeLength: 0, jobDescriptionLength: 0, isResumeSubmitted: false, isJobDescriptionSubmitted: false, currentUser: false} @ http://localhost:5173/src/components/TabsContainer.jsx:297
+[     862ms] [LOG] TabsContainer Props: {resumeLength: 0, jobDescriptionLength: 0, isResumeSubmitted: false, isJobDescriptionSubmitted: false, currentUser: false} @ http://localhost:5173/src/components/TabsContainer.jsx:297
+[     913ms] [LOG] Chat State Updated: {isResumeSubmitted: false, isJobDescriptionSubmitted: false, resumeLength: 0, jobDescriptionLength: 0, hasAnalysisResults: false} @ http://localhost:5173/src/components/Chat.jsx:59
+[     914ms] [LOG] ❌ No user or auth loading, skipping load @ http://localhost:5173/src/context/UsageContext.jsx:77
+[     916ms] [LOG] Chat State Updated: {isResumeSubmitted: false, isJobDescriptionSubmitted: false, resumeLength: 0, jobDescriptionLength: 0, hasAnalysisResults: false} @ http://localhost:5173/src/components/Chat.jsx:59
+[     916ms] [LOG] ❌ No user or auth loading, skipping load @ http://localhost:5173/src/context/UsageContext.jsx:77
+[     930ms] [LOG] 🔥 Auth state changed: Logged out @ http://localhost:5173/src/context/AuthContext.jsx:32
+[     930ms] [LOG] User object: null @ http://localhost:5173/src/context/AuthContext.jsx:33
+[     939ms] [LOG] TabsContainer Props: {resumeLength: 0, jobDescriptionLength: 0, isResumeSubmitted: false, isJobDescriptionSubmitted: false, currentUser: false} @ http://localhost:5173/src/components/TabsContainer.jsx:297
+[     939ms] [LOG] TabsContainer Props: {resumeLength: 0, jobDescriptionLength: 0, isResumeSubmitted: false, isJobDescriptionSubmitted: false, currentUser: false} @ http://localhost:5173/src/components/TabsContainer.jsx:297
+[     942ms] [LOG] ❌ No user or auth loading, skipping load @ http://localhost:5173/src/context/UsageContext.jsx:77
+[    1167ms] [LOG] html2pdf loaded successfully @ http://localhost:5173/src/components/Chat.jsx:41
+[    1183ms] [LOG] html2pdf loaded successfully @ http://localhost:5173/src/components/Chat.jsx:41
+[    1419ms] [LOG] TabsContainer Props: {resumeLength: 0, jobDescriptionLength: 0, isResumeSubmitted: false, isJobDescriptionSubmitted: false, currentUser: false} @ http://localhost:5173/src/components/TabsContainer.jsx:297
+[    1419ms] [LOG] TabsContainer Props: {resumeLength: 0, jobDescriptionLength: 0, isResumeSubmitted: false, isJobDescriptionSubmitted: false, currentUser: false} @ http://localhost:5173/src/components/TabsContainer.jsx:297

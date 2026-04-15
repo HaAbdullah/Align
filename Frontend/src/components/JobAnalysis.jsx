@@ -4,6 +4,7 @@ import {
   sendChatFeedbackToClaude,
   saveDocument,
 } from "../utils/claudeAPI";
+import { apiFetch } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import downloadIcon from "../assets/download.png";
@@ -41,7 +42,8 @@ function JobAnalysis({
 
   const [resumeLatex, setResumeLatex] = useState("");
   const [resumePdf, setResumePdf] = useState(""); // base64
-  const [coverLetterHTML, setCoverLetterHTML] = useState("");
+  const [coverLetterLatex, setCoverLetterLatex] = useState("");
+  const [coverLetterPdf, setCoverLetterPdf] = useState(""); // base64
   const [savingDocument, setSavingDocument] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState("");
 
@@ -63,7 +65,7 @@ function JobAnalysis({
       setError("No resume to save. Please generate one first.");
       return;
     }
-    if (activeDocument === "coverLetter" && !coverLetterHTML) {
+    if (activeDocument === "coverLetter" && !coverLetterLatex) {
       setError("No cover letter to save. Please generate one first.");
       return;
     }
@@ -76,7 +78,7 @@ function JobAnalysis({
       if (activeDocument === "resume") {
         await saveDocument(currentUser.uid, documentType, resumeLatex, resumePdf, "latex");
       } else {
-        await saveDocument(currentUser.uid, documentType, coverLetterHTML);
+        await saveDocument(currentUser.uid, documentType, coverLetterLatex, coverLetterPdf, "latex");
       }
 
       setSaveSuccess(
@@ -103,8 +105,7 @@ function JobAnalysis({
         return { latex: response.latex, pdf: response.pdf };
       } else if (activeDocument === "coverLetter") {
         const response = await sendCoverLetterFeedbackToClaude(feedbackPrompt);
-        if (!response.data?.content?.[0]) throw new Error("Invalid response structure from API");
-        return response.data.content[0].text;
+        return { latex: response.latex, pdf: response.pdf };
       } else {
         throw new Error("No active document selected");
       }
@@ -114,64 +115,29 @@ function JobAnalysis({
   };
 
   const sendResumeFeedbackToClaude = async (feedbackText) => {
-    try {
-      const isLocalhost = window.location.hostname === "localhost";
-      const API_BASE_URL = isLocalhost
-        ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api";
-
-      // Include the current latex source so the backend can revise it
-      const feedbackPrompt = `USER FEEDBACK: ${feedbackText}\n\nCURRENT RESUME (LaTeX):\n${resumeLatex}`;
-
-      const response = await fetch(`${API_BASE_URL}/create-resume`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeText: resume,
-          jobDescription: feedbackPrompt,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Resume feedback API request failed (${response.status}): ${errorText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
+    const feedbackPrompt = `USER FEEDBACK: ${feedbackText}\n\nCURRENT RESUME (LaTeX):\n${resumeLatex}`;
+    const response = await apiFetch("/create-resume", {
+      method: "POST",
+      body: JSON.stringify({ resumeText: resume, jobDescription: feedbackPrompt }),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Resume feedback API request failed (${response.status}): ${errorText}`);
     }
+    return response.json();
   };
 
-  const sendCoverLetterFeedbackToClaude = async (prompt) => {
-    try {
-      const isLocalhost = window.location.hostname === "localhost";
-
-      const API_BASE_URL = isLocalhost
-        ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api";
-
-      const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobDescription: prompt,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Cover letter feedback API request failed (${response.status}): ${errorText}`
-        );
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
+  const sendCoverLetterFeedbackToClaude = async (feedbackPrompt) => {
+    const fullPrompt = `USER FEEDBACK: ${feedbackPrompt}\n\nCURRENT COVER LETTER (LaTeX):\n${coverLetterLatex}`;
+    const response = await apiFetch("/create-cover-letter", {
+      method: "POST",
+      body: JSON.stringify({ resumeText: resume, jobDescription: fullPrompt }),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cover letter feedback API request failed (${response.status}): ${errorText}`);
     }
+    return response.json();
   };
 
   useEffect(() => {
@@ -193,46 +159,22 @@ function JobAnalysis({
   }, [resumePdf]);
 
   useEffect(() => {
-    if (!coverLetter) return;
+    if (!coverLetterPdf) return;
 
     const iframe = document.getElementById("cover-letter-preview");
     if (!iframe) return;
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-
-    doc.open();
-
-    const styledContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body {
-          background-color: white !important;
-          color: black !important;
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          margin: 20px;
-          padding: 0;
-        }
-        * {
-          background-color: inherit !important;
-          color: inherit !important;
-        }
-      </style>
-    </head>
-    <body>
-      ${coverLetter}
-    </body>
-    </html>
-  `;
-
-    doc.write(styledContent);
-    doc.close();
+    const binary = atob(coverLetterPdf);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    iframe.src = url;
 
     setActiveDocument("coverLetter");
-  }, [coverLetter]);
+
+    return () => URL.revokeObjectURL(url);
+  }, [coverLetterPdf]);
   const handleSendJobDescription = async () => {
     if (isAuthenticated && !canGenerate()) {
       setShowUpgradeModal(true);
@@ -246,27 +188,16 @@ function JobAnalysis({
     setCoverLetter("");
     setResumeLatex("");
     setResumePdf("");
+    setCoverLetterLatex("");
+    setCoverLetterPdf("");
     setActiveDocument(null);
 
     setFinalClaudePrompt(jobDescriptionInput);
 
     try {
-      const isLocalhost = window.location.hostname === "localhost";
-      const API_BASE_URL = isLocalhost
-        ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api";
-
-      console.log("=== RESUME GENERATION DEBUG ===");
-      console.log("resumeText length:", resume?.length);
-      console.log("resumeText first 300 chars:", resume?.slice(0, 300));
-      console.log("jobDescription length:", jobDescriptionInput?.length);
-      const response = await fetch(`${API_BASE_URL}/create-resume`, {
+      const response = await apiFetch("/create-resume", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeText: resume,
-          jobDescription: jobDescriptionInput,
-        }),
+        body: JSON.stringify({ resumeText: resume, jobDescription: jobDescriptionInput }),
       });
 
       if (!response.ok) {
@@ -307,32 +238,26 @@ function JobAnalysis({
 
     setGeneratingCoverLetter(true);
     setError("");
-    setCoverLetterHTML("");
+    setCoverLetterLatex("");
+    setCoverLetterPdf("");
 
     try {
-      let coverLetterPrompt =
-        "TASK: Generate a professional cover letter\n\nRESUME\n" +
-        resume +
-        "\nJOB DESCRIPTION\n" +
-        jobDescriptionInput;
+      const response = await apiFetch("/create-cover-letter", {
+        method: "POST",
+        body: JSON.stringify({ resumeText: resume, jobDescription: jobDescriptionInput }),
+      });
 
-      const response = await sendCoverLetterToClaude(coverLetterPrompt);
-
-      if (
-        !response.data ||
-        !response.data.content ||
-        !response.data.content[0]
-      ) {
-        throw new Error("Invalid response structure from API");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Cover letter generation failed (${response.status}): ${errorText}`);
       }
 
-      const fullText = response.data.content
-        .filter((part) => part.type === "text")
-        .map((part) => part.text)
-        .join("");
+      const data = await response.json();
+      if (!data.pdf || !data.latex) throw new Error("Invalid response from server");
 
-      setCoverLetter(fullText);
-      setCoverLetterHTML(fullText);
+      setCoverLetter(data.latex);
+      setCoverLetterLatex(data.latex);
+      setCoverLetterPdf(data.pdf);
 
       if (isAuthenticated) {
         incrementUsage();
@@ -344,36 +269,6 @@ function JobAnalysis({
     }
   };
 
-  const sendCoverLetterToClaude = async (prompt) => {
-    try {
-      const isLocalhost = window.location.hostname === "localhost";
-
-      const API_BASE_URL = isLocalhost
-        ? "http://localhost:3000/api"
-        : "https://align-vahq.onrender.com/api";
-
-      const response = await fetch(`${API_BASE_URL}/create-cover-letter`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobDescription: prompt,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `API request failed (${response.status}): ${errorText}`
-        );
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-  };
 
   const downloadPDF = (type) => {
     if (!isAuthenticated) {
@@ -394,23 +289,17 @@ function JobAnalysis({
       a.click();
       URL.revokeObjectURL(url);
     } else {
-      // Cover letter — still HTML, use print window
-      const content = coverLetter;
-      if (!content) return;
-      try {
-        const printWindow = window.open("", "_blank", "width=800,height=600");
-        if (!printWindow) { alert("Pop-up blocked! Please allow pop-ups for this site."); return; }
-        printWindow.document.open();
-        printWindow.document.write(content);
-        printWindow.document.close();
-        printWindow.onload = () => {
-          printWindow.focus();
-          printWindow.print();
-          printWindow.onafterprint = () => printWindow.close();
-        };
-      } catch (err) {
-        alert("An error occurred while printing the cover letter.");
-      }
+      if (!coverLetterPdf) return;
+      const binary = atob(coverLetterPdf);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "cover-letter.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -426,8 +315,11 @@ function JobAnalysis({
   };
 
   const handleUpdateCoverLetter = (newContent) => {
-    setCoverLetter(newContent);
-    setCoverLetterHTML(newContent);
+    if (newContent && typeof newContent === "object" && newContent.latex) {
+      setCoverLetter(newContent.latex);
+      setCoverLetterLatex(newContent.latex);
+      setCoverLetterPdf(newContent.pdf);
+    }
   };
 
   const switchToResume = () => {
@@ -570,7 +462,7 @@ function JobAnalysis({
         </div>
       )}
 
-      {summary && !isLoading && !generatingCoverLetter && (
+      {summary && !isLoading && (
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end justify-start mb-0">
             <button
@@ -584,7 +476,7 @@ function JobAnalysis({
               📄 Resume
             </button>
 
-            {coverLetter && (
+            {coverLetterPdf && (
               <button
                 className={`relative px-6 py-3 font-medium transition-all duration-300 rounded-t-lg border-l border-t border-r -ml-px ${
                   activeDocument === "coverLetter"
@@ -612,7 +504,7 @@ function JobAnalysis({
             </div>
           </div>
 
-          {coverLetter && (
+          {coverLetterPdf && (
             <div
               className={`${
                 activeDocument === "coverLetter" ? "block" : "hidden"
@@ -710,7 +602,7 @@ function JobAnalysis({
           currentDocumentType={
             activeDocument === "resume" ? "resume" : "cover letter"
           }
-          currentDocument={activeDocument === "resume" ? resumeLatex : coverLetter}
+          currentDocument={activeDocument === "resume" ? resumeLatex : coverLetterLatex}
           onUpdateDocument={
             activeDocument === "resume"
               ? handleUpdateResume

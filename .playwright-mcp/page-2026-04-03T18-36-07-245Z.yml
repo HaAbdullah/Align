@@ -1,0 +1,52 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Align Logo" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - img "Align Logo" [ref=e7]
+    - generic [ref=e9]:
+      - link "Home" [ref=e10] [cursor=pointer]:
+        - /url: /
+      - link "About Align" [ref=e11] [cursor=pointer]:
+        - /url: /about
+      - link "Contact Us" [ref=e12] [cursor=pointer]:
+        - /url: /contact
+    - generic [ref=e14]:
+      - link "Pricing" [ref=e15] [cursor=pointer]:
+        - /url: /pricing
+      - link "Sign Up" [ref=e17] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e18]:
+    - generic [ref=e20]:
+      - link "Align Logo" [ref=e22] [cursor=pointer]:
+        - /url: /
+        - img "Align Logo" [ref=e23]
+      - generic [ref=e25]:
+        - link "Home" [ref=e26] [cursor=pointer]:
+          - /url: /
+        - link "About Align" [ref=e27] [cursor=pointer]:
+          - /url: /about
+        - link "Contact Us" [ref=e28] [cursor=pointer]:
+          - /url: /contact
+      - generic [ref=e30]:
+        - link "Pricing" [ref=e31] [cursor=pointer]:
+          - /url: /pricing
+        - link "Sign Up" [ref=e33] [cursor=pointer]:
+          - /url: /signup
+    - generic [ref=e35]:
+      - heading "Tailor-Made Resumes & Cover Letters in Seconds" [level=1] [ref=e36]:
+        - text: Tailor-Made Resumes & Cover Letters
+        - text: in
+        - generic [ref=e37]: Seconds
+      - paragraph [ref=e38]: Upload your resume and job description. We'll align your experience with what employers are looking for, creating an application that stands out.
+      - link "Get Started" [ref=e40] [cursor=pointer]:
+        - /url: /signup
+    - generic [ref=e43]:
+      - heading "Upload 1–3 versions of your resume that best reflect your experience." [level=2] [ref=e44]
+      - generic [ref=e45]:
+        - generic [ref=e48] [cursor=pointer]:
+          - img "Upload" [ref=e50]
+          - paragraph [ref=e51]: Drag files here or click to upload
+          - paragraph [ref=e52]: (up to 5 files)
+          - paragraph [ref=e53]: "Accepted formats: PDF, DOCX"
+        - textbox "Or paste your resume content here..." [ref=e57]
+      - button "Submit Resume" [disabled] [ref=e59]

@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
+import { getAuthToken, BASE_URL } from "../utils/api";
 
 const UsageContext = createContext();
 
@@ -36,16 +37,18 @@ export const UsageProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Helper function to make API calls
+  // Helper function to make API calls (with Firebase auth token)
   const apiCall = async (endpoint, options = {}) => {
-    const url = `${import.meta.env.VITE_API_URL}${endpoint}`;
+    const url = `${BASE_URL}${endpoint}`;
 
     console.log(`🌐 API Call: ${options.method || "GET"} ${url}`);
 
     try {
+      const token = await getAuthToken();
       const response = await fetch(url, {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
           ...options.headers,
         },
         ...options,

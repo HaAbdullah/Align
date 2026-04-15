@@ -12,11 +12,12 @@ const getAllowedOrigins = () => {
 
 const corsConfig = {
   origin: (origin, callback) => {
+    // Allow any localhost or 127.0.0.1 origin for local development
+    if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
     const allowedOrigins = getAllowedOrigins();
-
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {

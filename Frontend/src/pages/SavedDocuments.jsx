@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { apiFetch } from "../utils/api";
 
 const SavedDocuments = () => {
   const { currentUser, loading } = useAuth();
@@ -143,34 +144,13 @@ const SavedDocuments = () => {
 
   const fetchDocuments = async (updateCache = false) => {
     try {
-      const API_BASE_URL =
-        window.location.hostname === "localhost"
-          ? "http://localhost:3000/api"
-          : "https://align-vahq.onrender.com/api";
-
       console.log("Fetching fresh documents from API");
 
       // Fetch recent documents
-      const recentResponse = await fetch(
-        `${API_BASE_URL}/documents/recent/${currentUser.uid}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const recentResponse = await apiFetch(`/documents/recent/${currentUser.uid}`);
 
       // Fetch favorited documents
-      const favoritesResponse = await fetch(
-        `${API_BASE_URL}/documents/favorites/${currentUser.uid}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const favoritesResponse = await apiFetch(`/documents/favorites/${currentUser.uid}`);
 
       let recentData = null;
       let favoritesData = null;
@@ -218,65 +198,53 @@ const SavedDocuments = () => {
     }
   };
 
-  const renderDocumentInIframe = (document) => {
-    const iframe = document.getElementById("document-preview");
+  const renderDocumentInIframe = (doc) => {
+    const iframe = window.document.getElementById("document-preview");
     if (!iframe) return;
 
-    if (document.content_format === "latex" && document.pdf_content) {
+    if (doc.content_format === "latex" && doc.pdf_content) {
       // Render PDF blob directly in iframe
-      const binary = atob(document.pdf_content);
+      const binary = atob(doc.pdf_content);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       const blob = new Blob([bytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       iframe.src = url;
-      // Store url for cleanup on next render
       iframe._blobUrl = url;
     } else {
       // Legacy HTML document
       if (iframe._blobUrl) { URL.revokeObjectURL(iframe._blobUrl); iframe._blobUrl = null; }
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      doc.open();
-      doc.write(document.html_content || "");
-      doc.close();
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(doc.html_content || "");
+      iframeDoc.close();
     }
   };
 
   const favoriteDocument = async (documentId) => {
     try {
       setActionLoading(documentId);
-      const API_BASE_URL =
-        window.location.hostname === "localhost"
-          ? "http://localhost:3000/api"
-          : "https://align-vahq.onrender.com/api";
-
-      const response = await fetch(
-        `${API_BASE_URL}/documents/${documentId}/favorite`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            firebaseUid: currentUser.uid,
-          }),
-        }
-      );
+      const response = await apiFetch(`/documents/${documentId}/favorite`, {
+        method: "POST",
+        body: JSON.stringify({ firebaseUid: currentUser.uid }),
+      });
 
       if (response.ok) {
         const result = await response.json();
         setSuccessMessage(result.data.message);
 
-        // Update local state
+        // Update local state — move doc from recent to favorites
         const docToMove = recentDocuments.find((doc) => doc.id === documentId);
         if (docToMove) {
-          const favoriteDoc = {
-            ...docToMove,
-            favorited_at: new Date().toISOString(),
-          };
+          const favoriteDoc = { ...docToMove, favorited_at: new Date().toISOString() };
+          setRecentDocuments((prev) => {
+            const updated = prev.filter((doc) => doc.id !== documentId);
+            setCachedData("recent", updated);
+            return updated;
+          });
           setFavoritedDocuments((prev) => {
             const updated = [favoriteDoc, ...prev];
-            setCachedData("favorites", updated); // Update cache
+            setCachedData("favorites", updated);
             return updated;
           });
         }
@@ -295,16 +263,9 @@ const SavedDocuments = () => {
   const unfavoriteDocument = async (documentId) => {
     try {
       setActionLoading(documentId);
-      const API_BASE_URL =
-        window.location.hostname === "localhost"
-          ? "http://localhost:3000/api"
-          : "https://align-vahq.onrender.com/api";
-
-      const response = await fetch(
-        `${API_BASE_URL}/documents/favorites/${documentId}?firebaseUid=${currentUser.uid}`,
-        {
-          method: "DELETE",
-        }
+      const response = await apiFetch(
+        `/documents/favorites/${documentId}?firebaseUid=${currentUser.uid}`,
+        { method: "DELETE" }
       );
 
       if (response.ok) {
@@ -380,12 +341,7 @@ const SavedDocuments = () => {
 
   // Check if document is already favorited
   const isDocumentFavorited = (documentId) => {
-    return favoritedDocuments.some((fav) => {
-      const recentDoc = recentDocuments.find(
-        (recent) => recent.id === documentId
-      );
-      return recentDoc && fav.html_content === recentDoc.html_content;
-    });
+    return favoritedDocuments.some((fav) => fav.id === documentId);
   };
 
   const formatDate = (dateString) => {
@@ -545,7 +501,7 @@ const SavedDocuments = () => {
                                 {doc.extracted_title || "Untitled Document"}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {formatDate(doc.created_at || doc.favorited_at)}
+                                {formatDate(doc.createdAt || doc.favorited_at)}
                               </p>
                             </div>
                           </div>
@@ -654,7 +610,7 @@ const SavedDocuments = () => {
                             : "Cover Letter"}{" "}
                           •
                           {formatDate(
-                            selectedDocument.created_at ||
+                            selectedDocument.createdAt ||
                               selectedDocument.favorited_at
                           )}
                         </p>

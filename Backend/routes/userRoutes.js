@@ -52,7 +52,7 @@ router.get(
       // Re-throw other errors to be handled by error middleware
       throw error;
     }
-  })
+  }),
 );
 
 /**
@@ -104,7 +104,7 @@ router.post(
       // Re-throw other errors
       throw error;
     }
-  })
+  }),
 );
 
 /**
@@ -157,7 +157,7 @@ router.post(
       // Re-throw other errors
       throw error;
     }
-  })
+  }),
 );
 
 /**
@@ -232,7 +232,7 @@ router.post(
       // Re-throw other errors
       throw error;
     }
-  })
+  }),
 );
 
 /**
@@ -268,7 +268,7 @@ router.post(
           tier: "FREEMIUM",
           stripeCustomerId: null,
           stripeSubscriptionId: null,
-        }
+        },
       );
 
       console.log("📤 Sending cancellation response");
@@ -294,7 +294,7 @@ router.post(
       // Re-throw other errors
       throw error;
     }
-  })
+  }),
 );
 
 /**
@@ -348,7 +348,7 @@ router.get(
       // Re-throw other errors
       throw error;
     }
-  })
+  }),
 );
 
 /**
@@ -364,28 +364,20 @@ router.post(
     console.log(`🔄 Reset usage request for: ${firebaseUid}`);
 
     try {
-      // Simple query to reset usage
-      const query = `
-        UPDATE users 
-        SET monthly_generations_used = 0,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE firebase_uid = $1
-        RETURNING monthly_generations_used, monthly_generations_limit
-      `;
+      const User = require("../models/User");
 
-      const result = await databaseService.pool.query(query, [firebaseUid]);
+      const updatedUser = await User.findOneAndUpdate(
+        { firebase_uid: firebaseUid },
+        { $set: { monthly_generations_used: 0 } },
+        { returnDocument: 'after' }
+      ).lean();
 
-      if (result.rows.length === 0) {
+      if (!updatedUser) {
         return res.status(404).json({
           success: false,
-          error: {
-            message: "User not found",
-            status: 404,
-          },
+          error: { message: "User not found", status: 404 },
         });
       }
-
-      const updatedUser = result.rows[0];
 
       console.log("📤 Usage reset successful");
 
@@ -401,7 +393,7 @@ router.post(
       console.error("❌ Error resetting usage:", error);
       throw error;
     }
-  })
+  }),
 );
 
 module.exports = router;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BASE_URL } from "../utils/api";
 import { CheckCircle, ArrowRight, Download, Star } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useUsage } from "../context/UsageContext";
@@ -71,7 +72,7 @@ const Success = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/verify-session`,
+        `${BASE_URL}/api/verify-session`,
         {
           method: "POST",
           headers: {

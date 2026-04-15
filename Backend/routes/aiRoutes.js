@@ -10,6 +10,9 @@ const aiService = require("../services/aiService");
 
 const router = express.Router();
 
+// Grab the AI rate limiter set up in server.js
+const getAiLimiter = (req) => req.app.locals.aiLimiter;
+
 /**
  * POST /api/create-resume
  * Generates a tailored resume using the V2 pipeline:
@@ -17,6 +20,7 @@ const router = express.Router();
  */
 router.post(
   "/create-resume",
+  (req, res, next) => getAiLimiter(req)(req, res, next),
   validators.jobDescription,
   asyncHandler(async (req, res) => {
     const { jobDescription, resumeText } = req.body;
@@ -40,20 +44,19 @@ router.post(
  */
 router.post(
   "/create-cover-letter",
+  (req, res, next) => getAiLimiter(req)(req, res, next),
   validators.jobDescription,
   asyncHandler(async (req, res) => {
-    const { jobDescription } = req.body;
+    const { jobDescription, resumeText } = req.body;
 
-    console.log(
-      `Cover letter generation request - Length: ${jobDescription.length}`
-    );
+    console.log(`Cover letter V2 generation request - JD length: ${jobDescription.length}, resumeText length: ${(resumeText || '').length}`);
 
-    const result = await aiService.generateCoverLetter(jobDescription);
+    const result = await aiService.generateCoverLetterV2(resumeText || "", jobDescription);
 
-    // Resume and cover letter need wrapped format for your existing frontend
     res.json({
       success: true,
-      data: result,
+      latex: result.latex,
+      pdf: result.pdf,
     });
   })
 );
@@ -64,6 +67,7 @@ router.post(
  */
 router.post(
   "/generate-questions",
+  (req, res, next) => getAiLimiter(req)(req, res, next),
   validators.jobDescription,
   asyncHandler(async (req, res) => {
     const { jobDescription } = req.body;
@@ -85,6 +89,7 @@ router.post(
  */
 router.post(
   "/generate-compensation",
+  (req, res, next) => getAiLimiter(req)(req, res, next),
   validators.jobDescription,
   asyncHandler(async (req, res) => {
     const { jobDescription } = req.body;
@@ -106,6 +111,7 @@ router.post(
  */
 router.post(
   "/generate-company-insights",
+  (req, res, next) => getAiLimiter(req)(req, res, next),
   validators.jobDescription,
   asyncHandler(async (req, res) => {
     const { jobDescription } = req.body;
@@ -125,6 +131,7 @@ router.post(
  */
 router.post(
   "/generate-keywords",
+  (req, res, next) => getAiLimiter(req)(req, res, next),
   asyncHandler(async (req, res) => {
     const { jobDescription, analysisResults } = req.body;
 

@@ -10,13 +10,15 @@ const stripeService = require("../services/stripeService");
 
 const router = express.Router();
 
+const getStripeLimiter = (req) => req.app.locals.stripeLimiter;
+
 /**
  * POST /api/create-checkout-session
  * Creates a new Stripe checkout session for subscription
  */
 router.post(
   "/create-checkout-session",
-  // validators.stripeCheckout, // Comment out if you don't have validators yet
+  (req, res, next) => getStripeLimiter(req)(req, res, next),
   asyncHandler(async (req, res) => {
     const { priceId, planName, userId, userEmail } = req.body;
 
@@ -38,7 +40,7 @@ router.post(
  */
 router.get(
   "/checkout-session/:sessionId",
-  // validators.stripeSession, // Comment out if you don't have validators yet
+  (req, res, next) => getStripeLimiter(req)(req, res, next),
   asyncHandler(async (req, res) => {
     const { sessionId } = req.params;
 
@@ -57,6 +59,7 @@ router.get(
  */
 router.post(
   "/verify-session",
+  (req, res, next) => getStripeLimiter(req)(req, res, next),
   asyncHandler(async (req, res) => {
     const { sessionId } = req.body;
 
@@ -82,6 +85,7 @@ router.post(
  */
 router.post(
   "/cancel-subscription",
+  (req, res, next) => getStripeLimiter(req)(req, res, next),
   asyncHandler(async (req, res) => {
     const { userId, customerId, subscriptionId } = req.body; // ✅ FIX: Extract userId
 

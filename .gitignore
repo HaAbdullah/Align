@@ -7,9 +7,13 @@ node_modules/
 # Claude Code settings
 .claude
 .playright-mcp
+CLAUDE.md
+
 
 # Environment variables (never commit secrets)
 .env
 .env.local
 .env.production
 .env.*.local
+
+

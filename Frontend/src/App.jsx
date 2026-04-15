@@ -13,6 +13,8 @@ import Contact from "./pages/Contact";
 import Pricing from "./pages/Pricing";
 import Success from "./pages/Success";
 import SavedDocuments from "./pages/SavedDocuments";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -52,12 +54,29 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/success" element={<Success />} />
-        <Route path="/saved-documents" element={<SavedDocuments />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/help" element={<Navigate to="/pricing" replace />} />
 
         {/* Protected routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved-documents"
+          element={
+            <ProtectedRoute>
+              <SavedDocuments />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/account"
           element={

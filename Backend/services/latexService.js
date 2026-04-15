@@ -6,15 +6,16 @@ const axios = require('axios');
 const readFileAsync = promisify(fs.readFile);
 
 const PREAMBLE_PATH = path.join(__dirname, '..', 'resume-template-preamble.tex');
+const CL_PREAMBLE_PATH = path.join(__dirname, '..', 'cover-letter-preamble.tex');
 const LATEX_API_URL = 'https://latex.ytotech.com/builds/sync';
 
-// Cache preamble in memory after first read
-let _preamble = null;
-async function getPreamble() {
-  if (!_preamble) {
-    _preamble = await readFileAsync(PREAMBLE_PATH, 'utf8');
+// Cache preambles in memory after first read
+const _preambleCache = {};
+async function getPreamble(filePath) {
+  if (!_preambleCache[filePath]) {
+    _preambleCache[filePath] = await readFileAsync(filePath, 'utf8');
   }
-  return _preamble;
+  return _preambleCache[filePath];
 }
 
 /**
@@ -42,8 +43,8 @@ function escapeLatex(str) {
  * @param {string} body - LaTeX content between \begin{document} and \end{document}
  * @returns {{ pdf: Buffer, latex: string }}
  */
-async function compile(body) {
-  const preamble = await getPreamble();
+async function compile(body, preamblePath = PREAMBLE_PATH) {
+  const preamble = await getPreamble(preamblePath);
   const fullLatex = `${preamble}\n\n\\begin{document}\n\n${body}\n\n\\end{document}\n`;
 
   try {
@@ -93,4 +94,8 @@ async function warmUp() {
   }
 }
 
-module.exports = { compile, escapeLatex, warmUp };
+async function compileCoverLetter(body) {
+  return compile(body, CL_PREAMBLE_PATH);
+}
+
+module.exports = { compile, compileCoverLetter, escapeLatex, warmUp };

@@ -1,0 +1,16 @@
+- generic [ref=e4]:
+  - link "Align Logo" [ref=e6] [cursor=pointer]:
+    - /url: /
+    - img "Align Logo" [ref=e7]
+  - generic [ref=e9]:
+    - link "Home" [ref=e10] [cursor=pointer]:
+      - /url: /
+    - link "About Align" [ref=e11] [cursor=pointer]:
+      - /url: /about
+    - link "Contact Us" [ref=e12] [cursor=pointer]:
+      - /url: /contact
+  - generic [ref=e14]:
+    - link "Pricing" [ref=e15] [cursor=pointer]:
+      - /url: /pricing
+    - link "Sign Up" [ref=e17] [cursor=pointer]:
+      - /url: /signup

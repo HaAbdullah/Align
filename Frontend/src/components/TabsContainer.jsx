@@ -256,30 +256,7 @@ const TabsContainer = ({
     }
   };
 
-  console.log("TabsContainer Props:", {
-    resumeLength: resume?.length,
-    jobDescriptionLength: jobDescription?.length,
-    isResumeSubmitted,
-    isJobDescriptionSubmitted,
-    currentUser: !!currentUser,
-    userTier,
-    activeTab,
-    cacheKey,
-    tabCache: Object.keys(tabCache).reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: {
-          hasData: !!tabCache[key].data,
-          loading: tabCache[key].loading,
-          error: !!tabCache[key].error,
-          isFresh: isDataFresh(key),
-        },
-      }),
-      {}
-    ),
-  });
-
-  if (!isResumeSubmitted || !isJobDescriptionSubmitted) {
+if (!isResumeSubmitted || !isJobDescriptionSubmitted) {
     return null;
   }
 

@@ -7,8 +7,9 @@
 const fs = require("fs");
 const axios = require("axios");
 const { APIError } = require("../middleware/errorMiddleware");
-const { compile } = require("./latexService");
+const { compile, compileCoverLetter } = require("./latexService");
 const resumeBuilder = require("./resumeBuilder");
+const coverLetterBuilder = require("./coverLetterBuilder");
 
 class AIService {
   constructor() {
@@ -36,26 +37,20 @@ Remember to:
 
 The output should be a complete, standalone HTML resume document ready for display.
 `,
-      coverLetterFeedback: `
-You are a professional cover letter writer. You're receiving user feedback to improve their cover letter document. 
-The user will provide:
-1. Their resume
-2. A job description
-3. The current version of their cover letter
-4. Their feedback on how to improve it
+      coverLetterFeedback: `You are a data extraction tool for cover letter feedback. Output ONLY raw JSON.
 
-Your task is to carefully analyze the feedback and regenerate the COVER LETTER incorporating the user's suggestions.
-Only output the complete HTML cover letter document with CSS styling - no explanations or surrounding text.
+The user will provide their resume, a job description, the current cover letter (LaTeX), and feedback on how to improve it.
+Incorporate the feedback and regenerate the cover letter content.
 
-Remember to:
-- Preserve the professional formatting and style
-- Implement ALL the user's requested changes
-- Maintain the overall structure while improving the content
-- Make sure the cover letter remains tailored to the specific job description
-- ALWAYS return a COVER LETTER, never a resume
+Output exactly this JSON shape:
+{"name":"Full Name","email":"email@example.com","phone":"phone number","linkedin":"linkedin URL or empty string","date":"Month DD, YYYY","paragraph1":"Revised first paragraph (2-3 sentences max) incorporating feedback","paragraph2":"Revised second paragraph (2-3 sentences max) incorporating feedback"}
 
-The output should be a complete, standalone HTML cover letter document ready for display.
-`,
+Rules:
+- Apply ALL of the user's requested changes to the paragraphs
+- Keep each paragraph to 2-3 sentences — brief and persuasive
+- Keep the same name, email, phone, linkedin, date from the current cover letter
+- Do NOT include any LaTeX special characters in paragraph text — plain prose only
+- Output only the JSON, nothing else`,
       questionGeneration: `
 You are an expert interview coach and hiring manager. Based on the provided job description, generate a comprehensive list of interview questions that a company would typically ask for this role.
 
@@ -672,6 +667,51 @@ Rules:
       : this.systemPrompts.coverLetter;
 
     return this.callClaudeAPI(systemPrompt, jobDescription);
+  }
+
+  /**
+   * V2: Generates cover letter as LaTeX + PDF using Haiku extraction + programmatic build.
+   * @param {string} resumeText - Plain text of user's uploaded resume
+   * @param {string} jobDescription - Job description (may include USER FEEDBACK prefix for revisions)
+   * @returns {{ latex: string, pdf: string }} pdf is base64-encoded
+   */
+  async generateCoverLetterV2(resumeText, jobDescription) {
+    const HAIKU = "claude-haiku-4-5-20251001";
+
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const context = `RESUME:\n${resumeText}\n\nJOB DESCRIPTION:\n${jobDescription}\n\nTODAY'S DATE: ${today}`;
+
+    const isFeedback = jobDescription.includes("USER FEEDBACK") && jobDescription.includes("CURRENT COVER LETTER");
+    const systemPrompt = isFeedback
+      ? this.systemPrompts.coverLetterFeedback
+      : `You are a data extraction tool. Output ONLY raw JSON. No explanation, no markdown, no code fences.
+
+Extract contact info from the RESUME and write a tailored cover letter for the JOB DESCRIPTION.
+
+Output exactly this JSON shape:
+{"name":"Full Name","email":"email@example.com","phone":"phone number","linkedin":"linkedin URL or empty string","date":"Month DD, YYYY","paragraph1":"First paragraph (2-3 sentences max): briefly introduce the candidate and the specific role, with one sharp hook that connects their most relevant experience to what the job needs","paragraph2":"Second paragraph (2-3 sentences max): show genuine enthusiasm for this specific role/company, highlight one or two concrete achievements that match the JD, and close with a confident call to connect"}
+
+Rules:
+- Extract name, email, phone, linkedin from the RESUME
+- Extract company and job title context from the JOB DESCRIPTION
+- Use the date from TODAY'S DATE
+- Be brief and persuasive — quality over quantity, no filler phrases
+- Make it feel personal and specific, not generic
+- Do NOT include any LaTeX special characters (%, &, $, #, _, ^) in paragraph text
+- If linkedin is not in the resume, use an empty string`;
+
+    console.log("Calling Haiku for cover letter extraction...");
+    const rawText = await this._callClaude(HAIKU, systemPrompt, context, 1200);
+    console.log("Cover letter extraction raw:", rawText);
+
+    const data = this._parseJSON(rawText);
+
+    const body = coverLetterBuilder.buildCoverLetter(data);
+    console.log("📄 Compiling cover letter LaTeX...");
+    const { pdf: pdfBuffer, latex } = await compileCoverLetter(body);
+    console.log("✅ Cover letter LaTeX compiled successfully");
+
+    return { latex, pdf: pdfBuffer.toString("base64") };
   }
 
   /**

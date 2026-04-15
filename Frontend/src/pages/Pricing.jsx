@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BASE_URL } from "../utils/api";
 import { Check, X, Star, Zap, Crown, Infinity } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { useAuth } from "../context/AuthContext";
@@ -6,11 +7,13 @@ import { useAuth } from "../context/AuthContext";
 const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [darkMode, setDarkMode] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(null); // planName of the button in flight
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   const { currentUser, signInWithGoogle } = useAuth();
 
   const handleCheckout = async (planName, billingCycle) => {
     try {
+      setCheckoutLoading(planName);
       // Check if user is authenticated
       if (!currentUser) {
         // Redirect to login or show login modal
@@ -60,16 +63,9 @@ const PricingPage = () => {
         return;
       }
 
-      console.log("Creating checkout session for:", {
-        priceId,
-        planName,
-        userId: currentUser.uid,
-        userEmail: currentUser.email,
-      });
-
       // Call your backend to create checkout session
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/create-checkout-session`,
+        `${BASE_URL}/api/create-checkout-session`,
         {
           method: "POST",
           headers: {
@@ -89,11 +85,8 @@ const PricingPage = () => {
       }
 
       const responseData = await response.json();
-      console.log("Backend response:", responseData);
 
-      // FIX: Access the data object properly
       if (responseData.success && responseData.data && responseData.data.url) {
-        console.log("Redirecting to Stripe:", responseData.data.url);
         // Redirect to Stripe Checkout
         window.location.href = responseData.data.url;
       } else {
@@ -106,6 +99,8 @@ const PricingPage = () => {
       // Clear stored plan data on error
       sessionStorage.removeItem("selectedPlan");
       sessionStorage.removeItem("selectedBillingCycle");
+    } finally {
+      setCheckoutLoading(null);
     }
   };
   const plans = [
@@ -282,17 +277,6 @@ const PricingPage = () => {
     if (monthlyYearly === 0 || yearlyPrice === 0) return 0;
     return Math.round(((monthlyYearly - yearlyPrice) / monthlyYearly) * 100);
   };
-  // You already have this line at the top, so just add the console.logs
-  console.log("Current user object:", currentUser);
-  console.log("Is user logged in?", !!currentUser);
-
-  if (currentUser) {
-    console.log("Firebase UID:", currentUser.uid);
-    console.log("Email:", currentUser.email);
-    console.log("Display Name:", currentUser.displayName);
-  } else {
-    console.log("User is not logged in");
-  }
   return (
     <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
       <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 transition-all duration-300">
@@ -451,6 +435,7 @@ const PricingPage = () => {
                   {/* CTA Button */}
 
                   <button
+                    disabled={checkoutLoading === plan.name}
                     onClick={() => {
                       if (plan.name === "Freemium") {
                         // Handle free plan signup - redirect to registration or dashboard
@@ -465,13 +450,15 @@ const PricingPage = () => {
                         handleCheckout(plan.name, billingCycle);
                       }
                     }}
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${plan.buttonStyle} transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-emerald-400`}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${plan.buttonStyle} transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100`}
                   >
-                    {plan.name === "Freemium"
-                      ? currentUser
-                        ? "Go to Dashboard"
-                        : "Get Started Free"
-                      : "Start Free Trial"}
+                    {checkoutLoading === plan.name
+                      ? "Redirecting..."
+                      : plan.name === "Freemium"
+                        ? currentUser
+                          ? "Go to Dashboard"
+                          : "Get Started Free"
+                        : "Start Free Trial"}
                   </button>
                 </div>
               </div>
