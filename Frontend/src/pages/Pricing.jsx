@@ -25,7 +25,7 @@ const PricingPage = () => {
       sessionStorage.setItem("selectedPlan", planName);
       sessionStorage.setItem("selectedBillingCycle", billingCycle);
 
-      const priceIds = import.meta.env.DEV ? {
+      const priceIds = {
         Basic: {
           monthly: "price_1TGRHE4NX040yqyNRS1uEUnS",
           yearly: "price_1TGRHE4NX040yqyNzGXWOEzd",
@@ -37,19 +37,6 @@ const PricingPage = () => {
         "Premium+": {
           monthly: "price_1TGRHG4NX040yqyN0YCzD5z5",
           yearly: "price_1TGRHG4NX040yqyNUPVI30NN",
-        },
-      } : {
-        Basic: {
-          monthly: "price_1TGNNQ6ObQYFnQrGUKvFvaRK",
-          yearly: "price_1TGNNP6ObQYFnQrGMJlAfIz1",
-        },
-        Premium: {
-          monthly: "price_1TGNNP6ObQYFnQrGS2OGbiDF",
-          yearly: "price_1TGNNO6ObQYFnQrGKXqh4Kwr",
-        },
-        "Premium+": {
-          monthly: "price_1TGNNN6ObQYFnQrGJNdbSD4X",
-          yearly: "price_1TGNNN6ObQYFnQrGa55khyIf",
         },
       };
 
