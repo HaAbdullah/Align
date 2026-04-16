@@ -1,16 +1,21 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import defaultUserIcon from "../assets/user.svg";
 import fullLogo from "../assets/full_logo_wide.png";
+import { LayoutDashboard, FileText, Settings, LogOut } from "lucide-react";
 
 const Navbar = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   const isAuthenticated = !!currentUser;
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const mobileDropdownRef = useRef(null);
+  const desktopDropdownRef = useRef(null);
 
   useEffect(() => {
     // Force dark mode always
@@ -35,6 +40,24 @@ const Navbar = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      const inMobile = mobileDropdownRef.current?.contains(e.target);
+      const inDesktop = desktopDropdownRef.current?.contains(e.target);
+      if (!inMobile && !inDesktop) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    setProfileDropdownOpen(false);
+    await logout();
+    navigate("/");
+  };
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
@@ -110,13 +133,69 @@ const Navbar = () => {
             </button>
 
             {isAuthenticated ? (
-              <Link to="/account">
-                <img
-                  src={currentUser?.photoURL || defaultUserIcon}
-                  alt="Profile"
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer border-2 border-emerald-500"
-                />
-              </Link>
+              <div className="relative" ref={mobileDropdownRef}>
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="focus:outline-none block"
+                >
+                  <img
+                    src={currentUser?.photoURL || defaultUserIcon}
+                    alt="Profile"
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer border-2 border-emerald-500 transition-all duration-200 ${
+                      profileDropdownOpen ? "ring-2 ring-emerald-400 ring-offset-2 ring-offset-gray-800" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`absolute right-0 mt-2 w-52 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden
+                    transition-all duration-200 origin-top-right
+                    ${profileDropdownOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"}`}
+                >
+                  <div className="px-4 py-3 border-b border-gray-700">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {currentUser?.displayName || "User"}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {currentUser?.email}
+                    </p>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 hover:text-emerald-400 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 mr-3 text-emerald-400" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/saved-documents"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 hover:text-emerald-400 transition-colors"
+                    >
+                      <FileText className="w-4 h-4 mr-3 text-emerald-400" />
+                      My Documents
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 hover:text-emerald-400 transition-colors"
+                    >
+                      <Settings className="w-4 h-4 mr-3 text-emerald-400" />
+                      Settings
+                    </Link>
+                  </div>
+                  <div className="border-t border-gray-700 py-1">
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
               <Link
                 to="/signup"
@@ -291,15 +370,69 @@ const Navbar = () => {
             )}
 
             {isAuthenticated ? (
-              <Link to="/account" className="flex-shrink-0">
-                <img
-                  src={currentUser?.photoURL || defaultUserIcon}
-                  alt="Profile"
-                  className={`rounded-full object-cover cursor-pointer border-2 border-emerald-500 ${
-                    scrolled ? "w-9 h-9" : "w-10 h-10"
-                  }`}
-                />
-              </Link>
+              <div className="relative flex-shrink-0" ref={desktopDropdownRef}>
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="focus:outline-none block"
+                >
+                  <img
+                    src={currentUser?.photoURL || defaultUserIcon}
+                    alt="Profile"
+                    className={`rounded-full object-cover cursor-pointer border-2 border-emerald-500 transition-all duration-200 ${
+                      profileDropdownOpen ? "ring-2 ring-emerald-400 ring-offset-2 ring-offset-gray-800" : ""
+                    } ${scrolled ? "w-9 h-9" : "w-10 h-10"}`}
+                  />
+                </button>
+                <div
+                  className={`absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden
+                    transition-all duration-200 origin-top-right
+                    ${profileDropdownOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"}`}
+                >
+                  <div className="px-4 py-3 border-b border-gray-700">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {currentUser?.displayName || "User"}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {currentUser?.email}
+                    </p>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 hover:text-emerald-400 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 mr-3 text-emerald-400" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/saved-documents"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 hover:text-emerald-400 transition-colors"
+                    >
+                      <FileText className="w-4 h-4 mr-3 text-emerald-400" />
+                      My Documents
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 hover:text-emerald-400 transition-colors"
+                    >
+                      <Settings className="w-4 h-4 mr-3 text-emerald-400" />
+                      Settings
+                    </Link>
+                  </div>
+                  <div className="border-t border-gray-700 py-1">
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div
                 className={`flex items-center ${
