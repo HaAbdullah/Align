@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Chat from "../components/Chat";
 import How from "../pages/How";
-import Navbar from "../components/Navbar";
 
 function Main() {
   const [conversation, setConversation] = useState([]);
@@ -20,7 +19,6 @@ function Main() {
 
   return (
     <div className="w-full min-h-screen bg-gray-900 text-gray-100">
-      <Navbar />
       <div className="w-full flex justify-center items-center px-5 pt-10 pb-1 mt-14">
         <div className="flex-1 text-center max-w-4xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent text-center leading-tight">

@@ -481,43 +481,33 @@ const PricingPage = () => {
             <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
               Frequently Asked Questions
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Can I change plans anytime?
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Yes! You can upgrade, downgrade, or cancel your subscription
-                  at any time. Changes take effect immediately.
-                </p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Is there a free trial?
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  All paid plans come with a 7-day free trial. No credit card
-                  required to start your Freemium account.
-                </p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  What payment methods do you accept?
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  We accept all major credit cards, PayPal, and bank transfers
-                  for annual subscriptions.
-                </p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Do you offer refunds?
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Yes, we offer a 30-day money-back guarantee for all paid
-                  plans. No questions asked.
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  q: "Can I change plans anytime?",
+                  a: "Yes! You can upgrade, downgrade, or cancel your subscription at any time. Changes take effect immediately.",
+                },
+                {
+                  q: "Is there a free trial?",
+                  a: "All paid plans come with a 7-day free trial. No credit card required to start your Freemium account.",
+                },
+                {
+                  q: "What payment methods do you accept?",
+                  a: "We accept all major credit cards via Stripe. Annual subscriptions are billed as a single charge.",
+                },
+                {
+                  q: "Do you offer refunds?",
+                  a: "Yes, we offer a 30-day money-back guarantee for all paid plans. No questions asked.",
+                },
+              ].map(({ q, a }) => (
+                <div
+                  key={q}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-emerald-600 hover:shadow-md transition-all duration-200"
+                >
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">{q}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{a}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -527,12 +517,14 @@ const PricingPage = () => {
               Need help choosing the right plan?
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Our team is here to help you find the perfect solution for your
-              career goals.
+              Our team is here to help you find the perfect solution for your career goals.
             </p>
-            <button className="bg-green-700 dark:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-800 dark:hover:bg-emerald-700 transition-colors">
-              Contact Sales
-            </button>
+            <a
+              href="/contact"
+              className="inline-block bg-green-700 dark:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-800 dark:hover:bg-emerald-700 transition-colors"
+            >
+              Contact Us
+            </a>
           </div>
         </div>
       </div>

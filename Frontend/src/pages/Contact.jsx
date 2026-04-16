@@ -1,47 +1,37 @@
 import React, { useState } from "react";
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    message: "",
-  });
+  const [formData, setFormData] = useState({ email: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [isMessageFocused, setIsMessageFocused] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(false);
     try {
       const response = await fetch("https://formspree.io/f/mzborobd", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       if (response.ok) {
-        console.log("Form submitted successfully");
         setSubmitted(true);
-        setTimeout(() => {
-          setSubmitted(false);
-          setFormData({
-            email: "",
-            message: "",
-          });
-        }, 3000);
+        setFormData({ email: "", message: "" });
+        setTimeout(() => setSubmitted(false), 5000);
       } else {
-        console.error("Form submission failed");
+        setSubmitError(true);
       }
-    } catch (error) {
-      console.error("Error during form submission:", error);
+    } catch {
+      setSubmitError(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -62,10 +52,7 @@ const Contact = () => {
           {/* Left Side - Contact Info */}
           <div className="relative group">
             {/* Gradient border background */}
-            <div
-              className="
-            solute inset-0 bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl opacity-0 transition-opacity duration-300"
-            ></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
             {/* Main content */}
             <div className="relative bg-gray-800 border-2 border-gray-600 rounded-xl p-8 transition-all duration-300 m-0.5">
@@ -126,84 +113,59 @@ const Contact = () => {
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-6">
-                  <label
-                    htmlFor="email"
-                    className="block text-gray-300 font-medium mb-2"
-                  >
+                  <label htmlFor="email" className="block text-gray-300 font-medium mb-2">
                     Your Email
                   </label>
-                  {/* Email Input with Gradient Border */}
-                  <div className="relative">
-                    <div
-                      className={`absolute inset-0 rounded-lg transition-opacity duration-300 ${
-                        isEmailFocused ? "opacity-100" : "opacity-0"
-                      }`}
-                    ></div>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      onFocus={() => setIsEmailFocused(true)}
-                      onBlur={() => setIsEmailFocused(false)}
-                      className={`relative w-full px-4 py-3 border-2 ${
-                        isEmailFocused
-                          ? "border-transparent"
-                          : "border-gray-600"
-                      } rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 outline-none transition-all duration-300 m-0.5`}
-                      placeholder="name@example.com"
-                      required
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200"
+                    placeholder="name@example.com"
+                    required
+                  />
                 </div>
 
                 <div className="mb-6">
-                  <label
-                    htmlFor="message"
-                    className="block text-gray-300 font-medium mb-2"
-                  >
+                  <label htmlFor="message" className="block text-gray-300 font-medium mb-2">
                     Your Message
                   </label>
-                  {/* Message Input with Gradient Border */}
-                  <div className="relative">
-                    <div
-                      className={`absolute inset-0 rounded-lg transition-opacity duration-300 ${
-                        isMessageFocused ? "opacity-100" : "opacity-0"
-                      }`}
-                    ></div>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      onFocus={() => setIsMessageFocused(true)}
-                      onBlur={() => setIsMessageFocused(false)}
-                      rows="5"
-                      className={`relative w-full px-4 py-3 border-2 ${
-                        isMessageFocused
-                          ? "border-transparent"
-                          : "border-gray-600"
-                      } rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 outline-none transition-all duration-300 resize-none m-0.5`}
-                      placeholder="How can we help you?"
-                      required
-                    ></textarea>
-                  </div>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows="5"
+                    className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 resize-none"
+                    placeholder="How can we help you?"
+                    required
+                  ></textarea>
                 </div>
 
                 <div className="text-center">
                   <button
                     type="submit"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105"
+                    disabled={submitting}
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
                   >
-                    Send
+                    {submitting ? "Sending…" : "Send Message"}
                   </button>
                 </div>
               </form>
 
               {submitted && (
-                <div className="mt-4 p-3 bg-emerald-900/50 border border-emerald-500 text-emerald-200 rounded-lg text-center">
-                  Message submitted! We'll get back to you soon.
+                <div className="mt-4 p-3 bg-emerald-900/40 border border-emerald-600 text-emerald-300 rounded-lg text-center text-sm">
+                  ✓ Message sent! We'll get back to you within 24 hours.
+                </div>
+              )}
+              {submitError && (
+                <div className="mt-4 p-3 bg-red-900/40 border border-red-600 text-red-300 rounded-lg text-center text-sm">
+                  Something went wrong. Please email us directly at{" "}
+                  <a href="mailto:abdullah.hasanjee@gmail.com" className="underline">
+                    abdullah.hasanjee@gmail.com
+                  </a>
                 </div>
               )}
             </div>

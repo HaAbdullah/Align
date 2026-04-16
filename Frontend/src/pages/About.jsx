@@ -476,8 +476,8 @@ const AboutPage = () => {
             Ready to Transform Your Job Search?
           </h2>
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Join thousands of successful job seekers who've elevated their
-            applications with Align
+            Built for job seekers who want to stop sending generic applications
+            and start landing interviews.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -488,10 +488,10 @@ const AboutPage = () => {
               {currentUser ? "Go to Dashboard" : "Start Free Today"}
             </button>
             <Link
-              to="/dashboard"
+              to="/pricing"
               className="border-2 border-emerald-500 text-emerald-400 hover:bg-emerald-500 hover:text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105"
             >
-              Try Dashboard
+              See Pricing
             </Link>
           </div>
         </div>

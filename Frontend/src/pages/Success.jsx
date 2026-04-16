@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { BASE_URL } from "../utils/api";
-import { CheckCircle, ArrowRight, Download, Star } from "lucide-react";
+import { CheckCircle, ArrowRight, Star } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useUsage } from "../context/UsageContext";
 
@@ -14,42 +14,22 @@ const Success = () => {
   const { currentUser } = useAuth();
   const { updateSubscription, refreshUserData } = useUsage(); // ✅ Added refreshUserData
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Success page loaded");
-    console.log("Current user:", currentUser);
-    console.log("Tier updated:", tierUpdated);
-  }, [currentUser, tierUpdated]);
 
   useEffect(() => {
     const initializeSuccess = async () => {
-      console.log("🚀 Initializing success page...");
-
-      // Get session_id from URL parameters
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get("session_id");
       const planFromUrl = urlParams.get("plan");
 
-      console.log("📊 Session ID from URL:", sessionId);
-      console.log("📊 Plan from URL:", planFromUrl);
-
       if (sessionId) {
         await verifySession(sessionId);
       } else {
-        console.log("⚠️ No session ID found, checking for plan info...");
-
-        // Try to get plan info from URL or sessionStorage
         const planFromStorage = sessionStorage.getItem("selectedPlan");
-        console.log("📊 Plan from storage:", planFromStorage);
 
         if (planFromUrl || planFromStorage) {
-          console.log("✅ Found plan info, updating tier...");
           await updateUserTier(planFromUrl || planFromStorage);
         } else {
-          console.log("❌ No plan information found");
-          setError(
-            "No payment information found. Please try again or contact support."
-          );
+          setError("No payment information found. Please try again or contact support.");
         }
 
         setLoading(false);
@@ -59,10 +39,8 @@ const Success = () => {
     initializeSuccess();
   }, []);
 
-  // Separate effect to handle tier updates when user becomes available
   useEffect(() => {
     if (currentUser && sessionData?.planName && !tierUpdated) {
-      console.log("👤 User available, updating tier with session data...");
       updateUserTier(sessionData.planName);
     }
   }, [currentUser, sessionData, tierUpdated]);
@@ -84,16 +62,10 @@ const Success = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Session verification successful:", data);
-        console.log("📋 Full response data:", JSON.stringify(data, null, 2));
-
-        // ✅ FIX: Extract data from response wrapper if needed
         const sessionInfo = data.data || data;
         setSessionData(sessionInfo);
 
-        // Update the user's tier if we have all the data
         if (sessionInfo.planName && currentUser && !tierUpdated) {
-          console.log("🔄 Updating tier immediately with session data...");
           await updateUserTier(
             sessionInfo.planName,
             sessionInfo.customer_id,
@@ -101,45 +73,19 @@ const Success = () => {
           );
         }
       } else {
-        console.error("❌ Session verification failed:", response.status);
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
         setError("Payment verification failed. Please contact support.");
         throw new Error("Session verification failed");
       }
-    } catch (error) {
-      console.error("❌ Error verifying session:", error);
+    } catch {
       setError("Unable to verify payment. Please contact support.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ FIXED: Updated function using database with better error handling
-  const updateUserTier = async (
-    planName,
-    customerId = null,
-    subscriptionId = null
-  ) => {
-    console.log("🔄 updateUserTier called with:", {
-      planName,
-      customerId,
-      subscriptionId,
-    });
-    console.log("👤 Current user:", currentUser?.uid);
-    console.log("✅ Tier already updated:", tierUpdated);
+  const updateUserTier = async (planName, customerId = null, subscriptionId = null) => {
+    if (!currentUser || tierUpdated) return;
 
-    if (!currentUser) {
-      console.log("⚠️ No current user available, cannot update tier");
-      return;
-    }
-
-    if (tierUpdated) {
-      console.log("✅ Tier already updated, skipping");
-      return;
-    }
-
-    // Map plan names to tier constants
     const planToTier = {
       Basic: "BASIC",
       Premium: "PREMIUM",
@@ -147,43 +93,26 @@ const Success = () => {
     };
 
     const tierKey = planToTier[planName];
-    console.log("🎯 Mapped tier key:", tierKey);
 
     if (tierKey) {
       try {
-        console.log(
-          `🔄 Upgrading user ${currentUser.uid} to ${tierKey} tier via DATABASE`
-        );
-
-        // ✅ FIX: Use database API with proper error handling
-        const result = await updateSubscription(
+        await updateSubscription(
           tierKey,
           customerId || sessionData?.customer_id,
           subscriptionId || sessionData?.subscription_id
         );
 
-        console.log("✅ updateSubscription result:", result);
-
         setTierUpdated(true);
-
-        // Clear any stored plan selection
         sessionStorage.removeItem("selectedPlan");
         sessionStorage.removeItem("selectedBillingCycle");
 
-        console.log("✅ Tier updated successfully in database!");
-
-        // ✅ FIX: Force refresh user data to ensure UI is updated
         setTimeout(async () => {
-          console.log("🔄 Refreshing user data after tier update...");
           await refreshUserData();
         }, 1000);
-      } catch (error) {
-        console.error("❌ Error updating tier:", error);
+      } catch {
         setError("Failed to update your subscription. Please contact support.");
       }
     } else {
-      console.warn("⚠️ Unknown plan name:", planName);
-      console.log("📋 Available plan mappings:", Object.keys(planToTier));
       setError(`Unknown subscription plan: ${planName}`);
     }
   };
@@ -192,46 +121,27 @@ const Success = () => {
     window.location.href = "/dashboard";
   };
 
-  const handleDownloadReceipt = () => {
-    // TODO: Implement receipt download logic
-    console.log("📄 Download receipt (not implemented yet)");
-  };
-
   if (loading) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${
-          darkMode ? "dark" : ""
-        }`}
-      >
-        <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 w-full h-full flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-700 dark:border-emerald-400"></div>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-400"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${
-          darkMode ? "dark" : ""
-        }`}
-      >
-        <div className="bg-gradient-to-br from-red-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-red-900 w-full h-full flex items-center justify-center">
-          <div className="max-w-md mx-auto text-center p-8">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Payment Issue
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
-            <button
-              onClick={() => (window.location.href = "/pricing")}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700"
-            >
-              Return to Pricing
-            </button>
-          </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-gray-800 border border-gray-700 rounded-2xl p-8 text-center">
+          <div className="text-5xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-white mb-3">Payment Issue</h1>
+          <p className="text-gray-400 mb-6">{error}</p>
+          <button
+            onClick={() => (window.location.href = "/pricing")}
+            className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
+          >
+            Return to Pricing
+          </button>
         </div>
       </div>
     );
@@ -340,14 +250,6 @@ const Success = () => {
               >
                 Go to Dashboard
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
-
-              <button
-                onClick={handleDownloadReceipt}
-                className="bg-gray-600 dark:bg-gray-700 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download Receipt
               </button>
             </div>
 
