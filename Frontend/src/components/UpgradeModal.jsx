@@ -29,7 +29,7 @@ function UpgradeModal() {
         <div className="modal-header">
           <h3>🚀 Generation Limit Reached</h3>
           <p>
-            You've used all <strong>{currentTier.limit}</strong> generations in
+            You've used all <strong>{currentTier.limit === -1 ? "∞" : currentTier.limit}</strong> generations in
             your {currentTier.name} plan.
           </p>
         </div>
@@ -38,7 +38,7 @@ function UpgradeModal() {
           <div className="current-usage">
             <div className="usage-circle">
               <span className="usage-fraction">
-                {usageCount}/{currentTier.limit}
+                {usageCount}/{currentTier.limit === -1 ? "∞" : currentTier.limit}
               </span>
               <span className="usage-label">Used</span>
             </div>

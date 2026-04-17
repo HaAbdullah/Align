@@ -30,7 +30,7 @@ function Chat() {
       script.src =
         "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
       script.async = true;
-      script.onload = () => console.log("html2pdf loaded successfully");
+      script.onload = () => {};
       script.onerror = () => console.error("Failed to load html2pdf library");
       document.body.appendChild(script);
     }
@@ -49,23 +49,6 @@ function Chat() {
 
     loadSavedResumes();
   }, []);
-
-  // Add a debug log to monitor state changes
-  useEffect(() => {
-    console.log("Chat State Updated:", {
-      isResumeSubmitted,
-      isJobDescriptionSubmitted,
-      resumeLength: resume?.length,
-      jobDescriptionLength: jobDescription?.length,
-      hasAnalysisResults: !!analysisResults,
-    });
-  }, [
-    isResumeSubmitted,
-    isJobDescriptionSubmitted,
-    resume,
-    jobDescription,
-    analysisResults,
-  ]);
 
   const handleStartNewApplication = () => {
     // Reset all state

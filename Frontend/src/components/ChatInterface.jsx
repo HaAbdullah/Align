@@ -237,7 +237,6 @@ ${currentDocument}
             className={`relative bg-gray-800 border-2 ${
               isTextareaFocused ? "border-transparent" : "border-gray-600"
             } rounded-xl overflow-hidden transition-all duration-300`}
-            style={{ margin: isTextareaFocused ? "2px" : "0px" }}
           >
             <div className="flex items-center">
               <textarea

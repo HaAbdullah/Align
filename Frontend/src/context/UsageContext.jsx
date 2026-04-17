@@ -41,8 +41,6 @@ export const UsageProvider = ({ children }) => {
   const apiCall = async (endpoint, options = {}) => {
     const url = `${BASE_URL}${endpoint}`;
 
-    console.log(`🌐 API Call: ${options.method || "GET"} ${url}`);
-
     try {
       const token = await getAuthToken();
       const response = await fetch(url, {
@@ -56,8 +54,6 @@ export const UsageProvider = ({ children }) => {
 
       const data = await response.json();
 
-      console.log(`📨 API Response:`, { status: response.status, data });
-
       if (!response.ok) {
         throw new Error(
           data.error?.message || data.message || `HTTP ${response.status}`
@@ -66,7 +62,6 @@ export const UsageProvider = ({ children }) => {
 
       return data;
     } catch (error) {
-      console.error(`❌ API call failed for ${endpoint}:`, error.message);
       throw error;
     }
   };
@@ -74,34 +69,19 @@ export const UsageProvider = ({ children }) => {
   // Load user data from PostgreSQL
   const loadUserData = useCallback(async () => {
     if (!currentUser || authLoading) {
-      console.log("❌ No user or auth loading, skipping load");
       setUserData(null);
       return;
     }
 
-    console.log(`🔍 Loading user data for: ${currentUser.uid}`);
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await apiCall(`/api/users/profile/${currentUser.uid}`);
       const user = response.data;
-
-      console.log("✅ User data loaded:", {
-        tier: user.subscription_tier,
-        used: user.monthly_generations_used,
-        limit: user.monthly_generations_limit,
-        canGenerate: user.canGenerate,
-        remaining: user.remainingGenerations,
-      });
-
       setUserData(user);
     } catch (error) {
-      console.error("❌ Error loading user data:", error.message);
-
-      // If user doesn't exist, try to create them
       if (error.message.includes("User not found")) {
-        console.log("👤 User not found, creating new user...");
         try {
           const createResponse = await apiCall("/api/users/create", {
             method: "POST",
@@ -111,11 +91,8 @@ export const UsageProvider = ({ children }) => {
               displayName: currentUser.displayName,
             }),
           });
-
           setUserData(createResponse.data);
-          console.log("✅ New user created successfully");
         } catch (createError) {
-          console.error("❌ Error creating user:", createError.message);
           setError(createError.message);
         }
       } else {
@@ -131,9 +108,7 @@ export const UsageProvider = ({ children }) => {
     loadUserData();
   }, [loadUserData]);
 
-  // Manual refresh function
   const refreshUserData = useCallback(() => {
-    console.log("🔄 Manual refresh triggered");
     return loadUserData();
   }, [loadUserData]);
 
@@ -151,12 +126,10 @@ export const UsageProvider = ({ children }) => {
     }
 
     if (!canGenerate()) {
-      console.log("❌ Cannot generate - showing upgrade modal");
       setShowUpgradeModal(true);
       return false;
     }
 
-    console.log("📈 Incrementing usage...");
     setIsLoading(true);
 
     try {
@@ -168,9 +141,7 @@ export const UsageProvider = ({ children }) => {
       );
 
       const result = response.data;
-      console.log("✅ Usage incremented:", result);
 
-      // Update local state with new usage counts
       setUserData((prev) => ({
         ...prev,
         monthly_generations_used: result.generationsUsed,
@@ -182,8 +153,6 @@ export const UsageProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error("❌ Error incrementing usage:", error.message);
-
       if (error.message.includes("Generation limit exceeded")) {
         setShowUpgradeModal(true);
       } else {
@@ -206,11 +175,6 @@ export const UsageProvider = ({ children }) => {
       throw new Error("User not authenticated");
     }
 
-    console.log("🔄 Updating subscription:", {
-      tier,
-      stripeCustomerId,
-      stripeSubscriptionId,
-    });
     setIsLoading(true);
 
     try {
@@ -227,9 +191,7 @@ export const UsageProvider = ({ children }) => {
       );
 
       const result = response.data;
-      console.log("✅ Subscription updated:", result);
 
-      // Update local state with the new user data
       if (result.user) {
         setUserData(result.user);
       }
@@ -243,7 +205,6 @@ export const UsageProvider = ({ children }) => {
 
       return result;
     } catch (error) {
-      console.error("❌ Error updating subscription:", error.message);
       setError(error.message);
       throw error;
     } finally {
@@ -299,36 +260,29 @@ export const UsageProvider = ({ children }) => {
       throw new Error("User not authenticated");
     }
 
-    console.log("🚫 Cancelling subscription for user:", currentUser.uid);
     setIsLoading(true);
     setError(null);
 
     try {
-      // ✅ FIX: Get subscription data from userData
       const subscriptionData = getSubscriptionData();
 
       if (!subscriptionData?.customerId && !subscriptionData?.subscriptionId) {
         throw new Error("No subscription data found to cancel");
       }
 
-      // Call your backend cancel-subscription endpoint with all required data
       const response = await apiCall("/api/cancel-subscription", {
         method: "POST",
         body: JSON.stringify({
           userId: currentUser.uid,
-          customerId: subscriptionData?.customerId, // ✅ Add customerId
-          subscriptionId: subscriptionData?.subscriptionId, // ✅ Add subscriptionId
+          customerId: subscriptionData?.customerId,
+          subscriptionId: subscriptionData?.subscriptionId,
         }),
       });
 
-      console.log("✅ Subscription cancelled successfully:", response);
-
-      // Refresh user data to get updated tier and status from PostgreSQL
       await refreshUserData();
 
       return response;
     } catch (error) {
-      console.error("❌ Error cancelling subscription:", error.message);
       setError(error.message);
       throw error;
     } finally {
@@ -340,19 +294,6 @@ export const UsageProvider = ({ children }) => {
     if (userData?.monthly_generations_limit === -1) return "Unlimited";
     return remainingGenerations;
   };
-
-  // Debug logging
-  useEffect(() => {
-    if (userData) {
-      console.log("📊 UsageContext state:", {
-        tier: userTier,
-        usageCount,
-        remainingGenerations,
-        canGenerate: canGenerate(),
-        hasActiveSubscription: hasActiveSubscription(),
-      });
-    }
-  }, [userData]);
 
   return (
     <UsageContext.Provider
