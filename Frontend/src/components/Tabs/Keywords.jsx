@@ -79,7 +79,6 @@ const Keywords = ({
         error: null,
       });
     } catch (err) {
-      console.error("Error generating keywords analysis:", err);
       const errorMessage =
         "Failed to generate keywords analysis. Please try again.";
 
@@ -96,10 +95,9 @@ const Keywords = ({
   };
 
   const handleRefresh = () => {
-    // Force refresh by clearing cache and fetching new data
+    hasFetched.current = false;
     forceRefresh();
     setKeywordsData(null);
-    generateKeywordsAnalysis();
   };
 
   const parseKeywordsData = (text) => {
@@ -167,15 +165,7 @@ const Keywords = ({
       {/* Loading State */}
       {loading && (
         <div className="text-center py-16">
-          <div
-            className="w-16 h-16 mx-auto mb-6 rounded-full animate-spin"
-            style={{
-              border: "4px solid rgba(255, 255, 255, 0.1)",
-              borderLeftColor: "transparent",
-              borderImage:
-                "linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88) 1",
-            }}
-          ></div>
+          <div className="w-12 h-12 mx-auto mb-6 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin"></div>
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
             {cachedData ? "Refreshing Keywords..." : "Analyzing Keywords"}
           </h3>

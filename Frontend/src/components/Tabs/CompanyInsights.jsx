@@ -69,7 +69,6 @@ const CompanyInsights = ({
 
       setExpandedSections(new Set(["overview"]));
     } catch (err) {
-      console.error("Error fetching company data:", err);
       const errorMessage =
         "Failed to generate company insights data. Please try again.";
 
@@ -133,15 +132,7 @@ const CompanyInsights = ({
     return (
       <div className="font-inter">
         <div className="text-center py-16">
-          <div
-            className="w-16 h-16 mx-auto mb-6 rounded-full animate-spin"
-            style={{
-              border: "4px solid rgba(255, 255, 255, 0.1)",
-              borderLeftColor: "transparent",
-              borderImage:
-                "linear-gradient(90deg, #4a6bff, #8a64ff, #e85f88) 1",
-            }}
-          ></div>
+          <div className="w-12 h-12 mx-auto mb-6 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin"></div>
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
             {cachedData
               ? "Refreshing Company Data..."
@@ -543,22 +534,6 @@ const CompanyInsights = ({
         </button>
       </div>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 };
