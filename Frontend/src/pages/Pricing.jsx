@@ -3,6 +3,8 @@ import { BASE_URL } from "../utils/api";
 import { Check, X, Star, Zap, Crown, Infinity } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { useAuth } from "../context/AuthContext";
+import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 
 const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState("monthly");
@@ -266,6 +268,39 @@ const PricingPage = () => {
   };
   return (
     <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
+      <SEO
+        title="Pricing: Free to $15 per Month"
+        description="Start free. Align's AI resume builder plans start at $5/month. Tailored resumes, cover letters, ATS optimization, and interview prep tools."
+        canonicalPath="/pricing"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Product",
+              "name": "Align AI Resume Builder",
+              "description": "AI-powered resume and cover letter builder with ATS optimization using Jake's resume template.",
+              "brand": { "@type": "Brand", "name": "Align" },
+              "offers": [
+                { "@type": "Offer", "name": "Freemium", "price": "0.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "description": "2 resume and cover letter generations per month, keyword analysis, market analysis." },
+                { "@type": "Offer", "name": "Basic", "price": "5.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "description": "5 generations per month, resume saving, company insights, interview question bank." },
+                { "@type": "Offer", "name": "Premium", "price": "10.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "description": "10 generations per month, enhanced company insights, comprehensive interview bank." },
+                { "@type": "Offer", "name": "Premium+", "price": "15.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "description": "Unlimited generations, unlimited storage, priority support, beta feature access." }
+              ]
+            },
+            {
+              "@type": "FAQPage",
+              "mainEntity": [
+                { "@type": "Question", "name": "Can I change plans anytime?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can upgrade, downgrade, or cancel your subscription at any time." } },
+                { "@type": "Question", "name": "Is there a free plan?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Freemium plan is free forever with 2 resume and cover letter generations per month." } },
+                { "@type": "Question", "name": "Do you offer refunds?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. We offer a 30-day money-back guarantee for all paid plans." } },
+                { "@type": "Question", "name": "What resume template does Align use?", "acceptedAnswer": { "@type": "Answer", "text": "Align generates resumes using Jake's resume template, a widely recommended, ATS-friendly format popular among software engineers and CS students." } }
+              ]
+            }
+          ]
+        })}</script>
+      </Helmet>
       <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 transition-all duration-300">
         {/* Header */}
         <div className="container mx-auto px-4 py-16">

@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import SEO from "../components/SEO";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-gray-900 pt-20 pb-16 px-4">
+      <SEO
+        title="Terms of Service"
+        description="Read Align's Terms of Service — subscriptions, billing, usage limits, and our 30-day money-back guarantee."
+        canonicalPath="/terms"
+      />
       <div className="max-w-3xl mx-auto">
         <Link
           to="/"

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import SEO from "../components/SEO";
 
 const Why = () => {
   const [showATSTooltip1, setShowATSTooltip1] = useState(false);
@@ -7,6 +8,11 @@ const Why = () => {
 
   return (
     <div className="pt-24 pb-16 transition-colors">
+      <SEO
+        title="Why AI Resume Tailoring Works: Beat the ATS"
+        description="One resume won't land interviews. Align tailors every application to pass ATS filters using Jake's resume template, trusted by software engineers."
+        canonicalPath="/why"
+      />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-green-800 dark:text-transparent dark:bg-gradient-to-r dark:from-blue-500 dark:via-purple-500 dark:to-pink-500 dark:bg-clip-text mb-4 transition-colors">
@@ -14,7 +20,7 @@ const Why = () => {
             Interviews.
           </h1>
           <p className="text-xl font-medium mb-6 text-gray-900 dark:text-gray-200 transition-colors">
-            <strong>JobFit fixes that.</strong> We help you stand out by
+            <strong>Align fixes that. Tailored applications, powered by AI.</strong> We help you stand out by
             tailoring your application to <em>each</em> job you apply to—without
             the hours of rewriting.
           </p>
@@ -48,7 +54,7 @@ const Why = () => {
                     {showATSTooltip1 && (
                       <div className="absolute top-6 left-0 z-20 w-64 p-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded shadow-lg transition-colors">
                         Employers use AI/ML-powered ATS to screen resumes.
-                        JobFit's ATS-optimized CVs ensure you get shortlisted.
+                        Align's ATS-optimized CVs ensure you get shortlisted.
                       </div>
                     )}
                   </button>
@@ -79,10 +85,24 @@ const Why = () => {
                     {showATSTooltip2 && (
                       <div className="absolute top-6 left-0 z-20 w-64 p-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded shadow-lg transition-colors">
                         Employers use AI/ML-powered ATS to screen resumes.
-                        JobFit's ATS-optimized CVs ensure you get shortlisted.
+                        Align's ATS-optimized CVs ensure you get shortlisted.
                       </div>
                     )}
                   </button>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex-shrink-0 mr-4">
+                <span className="text-3xl">📄</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-200 transition-colors">
+                  Jake's Resume Template: The Recruiter's Favorite
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 transition-colors">
+                  Every resume Align generates uses Jake's resume template, the format widely recommended on r/cscareerquestions and trusted by engineers at top tech companies.
                 </p>
               </div>
             </div>
@@ -110,7 +130,7 @@ const Why = () => {
                   Built for Real Job Seekers
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 transition-colors">
-                  Whether you're applying to 1 job or 100, JobFit helps you show
+                  Whether you're applying to 1 job or 100, Align helps you show
                   your best self—every time, with{" "}
                   <button
                     className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer relative transition-colors"
@@ -122,7 +142,7 @@ const Why = () => {
                     {showATSTooltip3 && (
                       <div className="absolute top-6 left-0 z-20 w-64 p-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded shadow-lg transition-colors">
                         Employers use AI/ML-powered ATS to screen resumes.
-                        JobFit's ATS-optimized CVs ensure you get shortlisted.
+                        Align's ATS-optimized CVs ensure you get shortlisted.
                       </div>
                     )}
                   </button>{" "}
@@ -140,7 +160,7 @@ const Why = () => {
           </h2>
 
           <p className="text-lg text-gray-800 dark:text-gray-200 mb-8 transition-colors">
-            <strong>JobFit's AI doesn't stop at your resume.</strong> We prepare
+            <strong>Align's AI doesn't stop at your resume.</strong> We prepare
             you for what comes next with comprehensive interview preparation
             tools.
           </p>

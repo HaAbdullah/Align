@@ -1,10 +1,35 @@
 import React from "react";
+import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 // import HeroImage from "../assets/hero2.jpg";
 
 const How = () => {
   return (
     <div className="bg-gray-900 py-16">
+      <SEO
+        title="How It Works: AI Resume Tailoring in 4 Steps"
+        description="Upload your resume, paste the job description, and Align's AI rewrites your application in under 60 seconds using Jake's resume template."
+        canonicalPath="/how"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          "name": "How to Tailor Your Resume with AI Using Align",
+          "description": "Generate ATS-optimized, tailored resumes using Jake's resume template in under 60 seconds.",
+          "totalTime": "PT1M",
+          "step": [
+            { "@type": "HowToStep", "position": 1, "name": "Upload Your Resume(s)", "text": "Upload up to 3 resume versions. Align analyzes your career from multiple angles to choose the strongest points for each application." },
+            { "@type": "HowToStep", "position": 2, "name": "Add the Job Description", "text": "Paste the job posting. Align extracts responsibilities, ATS keywords, must-have skills, and role-specific tone." },
+            { "@type": "HowToStep", "position": 3, "name": "Intelligent Matching and Rewrite", "text": "AI rewrites your resume using Jake's resume template, emphasizing relevant experience and optimizing for ATS filters." },
+            { "@type": "HowToStep", "position": 4, "name": "Download and Apply Confidently", "text": "Receive a tailored resume and cover letter in under 60 seconds, ready to upload to job portals." }
+          ]
+        })}</script>
+      </Helmet>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text mb-12">
+          How Align Works: AI Resume Tailoring in 4 Steps
+        </h1>
         <div className="bg-gray-800 rounded-lg shadow-lg shadow-emerald-500/5 p-8 mb-8">
           <div className="mb-12">
             <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-full mb-4 shadow-sm">

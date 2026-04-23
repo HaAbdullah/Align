@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import SEO from "../components/SEO";
 
 const Contact = () => {
   const [formData, setFormData] = useState({ email: "", message: "" });
@@ -40,6 +41,11 @@ const Contact = () => {
       className="pt-24 pb-16 bg-gray-900 min-h-screen font-inter"
       id="contact"
     >
+      <SEO
+        title="Contact Us"
+        description="Have a question about Align? Reach out to our team and we'll respond within 24 hours."
+        canonicalPath="/contact"
+      />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text mb-4 pb-2">

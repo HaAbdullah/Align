@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import SEO from "../components/SEO";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-gray-900 pt-20 pb-16 px-4">
+      <SEO
+        title="Privacy Policy"
+        description="Read Align's Privacy Policy. Learn what data we collect, how it's used, and how it's protected when you use our AI resume builder."
+        canonicalPath="/privacy"
+      />
       <div className="max-w-3xl mx-auto">
         <Link
           to="/"

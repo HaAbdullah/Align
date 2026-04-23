@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /saved-documents
+Disallow: /account
+Disallow: /settings
+Disallow: /success
+
+Sitemap: https://www.align.ai/sitemap.xml

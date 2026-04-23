@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Chat from "../components/Chat";
 import How from "../pages/How";
+import SEO from "../components/SEO";
 
 function Main() {
   const [conversation, setConversation] = useState([]);
@@ -19,6 +20,11 @@ function Main() {
 
   return (
     <div className="w-full min-h-screen bg-gray-900 text-gray-100">
+      <SEO
+        title="AI Resume Builder Using Jake's Resume Template"
+        description="Upload your resume and job description. Align's AI rewrites your application in seconds using Jake's resume template, ATS-optimized and recruiter-ready."
+        canonicalPath="/"
+      />
       <div className="w-full flex justify-center items-center px-5 pt-10 pb-1 mt-14">
         <div className="flex-1 text-center max-w-4xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent text-center leading-tight">
@@ -39,10 +45,14 @@ function Main() {
           </h1>
 
           <p className="text-lg md:text-xl leading-relaxed text-gray-300 mt-4 text-center max-w-3xl mx-auto">
-            Upload your resume and job description. We'll{" "}
-            <span className="text-purple-400 font-semibold">align</span> your
-            experience with what employers are looking for, creating an
-            application that stands out.
+            Upload your resume and job description. Align's AI rewrites your
+            experience to match exactly what employers want. We generate{" "}
+            <span className="text-purple-400 font-semibold">ATS-ready</span>{" "}
+            resumes using{" "}
+            <span className="text-emerald-400 font-semibold">
+              Jake's resume template
+            </span>
+            , the format trusted by engineers at top tech companies.
           </p>
           <div className="mt-8">
             <Link

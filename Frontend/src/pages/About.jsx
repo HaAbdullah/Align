@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import fullLogo from "../assets/full_logo_wide.png";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import SEO from "../components/SEO";
 const AboutPage = () => {
   const { currentUser, loading } = useAuth();
   const navigate = useNavigate();
@@ -109,6 +110,11 @@ const AboutPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 font-inter">
+      <SEO
+        title="About: AI-Powered Resume and Cover Letter Tool"
+        description="Learn how Align uses Claude AI to tailor your resume and cover letter to each job. Built by a CS student who lived the job search struggle."
+        canonicalPath="/about"
+      />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-start justify-center px-6 pt-10 pb-32">
         {/* Animated Background */}
@@ -144,6 +150,14 @@ const AboutPage = () => {
               <span className="text-emerald-400 font-semibold">
                 interview magnets
               </span>
+            </p>
+            <p className="text-base text-gray-400 max-w-3xl mx-auto mt-4">
+              Every resume is generated using{" "}
+              <span className="text-emerald-400 font-semibold">
+                Jake's resume template
+              </span>
+              : the LaTeX-based format widely recommended for software engineers
+              and CS students to beat ATS systems and land top tech roles.
             </p>
           </div>
 
