@@ -64,7 +64,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-semibold text-gray-100 mb-3">4. AI-Generated Content Disclaimer</h2>
               <p className="text-gray-400 leading-relaxed">
-                Align uses large language models (Claude by Anthropic) to generate resume and cover letter content. AI-generated content may contain inaccuracies. You are responsible for reviewing, editing, and verifying all content before submitting it to employers. Align is a tool to assist you — not a substitute for your own judgment.
+                Align uses large language models (Claude by Anthropic) to generate resume and cover letter content. AI-generated content may contain inaccuracies. You are responsible for reviewing, editing, and verifying all content before submitting it to employers. Align is a tool to assist you, not a substitute for your own judgment.
               </p>
             </section>
 

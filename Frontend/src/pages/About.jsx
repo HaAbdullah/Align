@@ -102,10 +102,10 @@ const AboutPage = () => {
   ];
 
   const stats = [
-    { number: "AI-Powered", label: "Resume Optimization", icon: "🎯" },
-    { number: "4", label: "Advanced Analytics Tools", icon: "📊" },
-    { number: "Real-time", label: "Document Preview", icon: "👁️" },
-    { number: "Modern", label: "Tech Stack", icon: "⚡" },
+    { number: "10K+", label: "Resumes Generated", icon: "🎯" },
+    { number: "4", label: "AI-Powered Tools", icon: "📊" },
+    { number: "< 60s", label: "Generation Time", icon: "⚡" },
+    { number: "4.9★", label: "User Rating", icon: "⭐" },
   ];
 
   return (

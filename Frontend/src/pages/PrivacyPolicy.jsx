@@ -27,10 +27,10 @@ const PrivacyPolicy = () => {
             <section>
               <h2 className="text-lg font-semibold text-gray-100 mb-3">1. What We Collect</h2>
               <ul className="list-disc list-inside text-gray-400 space-y-2 leading-relaxed">
-                <li><strong className="text-gray-300">Account data</strong> — your name, email address, and profile photo via Google Sign-In (Firebase Authentication).</li>
-                <li><strong className="text-gray-300">Payment data</strong> — billing information is processed and stored by Stripe. Align never sees or stores your card details.</li>
-                <li><strong className="text-gray-300">Content you provide</strong> — resume text, job descriptions, and other inputs you submit to generate documents. This content is sent to the Claude API (Anthropic) for processing.</li>
-                <li><strong className="text-gray-300">Usage data</strong> — how many generations you have used this month, your subscription tier, and timestamps.</li>
+                <li><strong className="text-gray-300">Account data</strong>: your name, email address, and profile photo via Google Sign-In (Firebase Authentication).</li>
+                <li><strong className="text-gray-300">Payment data</strong>: billing information is processed and stored by Stripe. Align never sees or stores your card details.</li>
+                <li><strong className="text-gray-300">Content you provide</strong>: resume text, job descriptions, and other inputs you submit to generate documents. This content is sent to the Claude API (Anthropic) for processing.</li>
+                <li><strong className="text-gray-300">Usage data</strong>: how many generations you have used this month, your subscription tier, and timestamps.</li>
               </ul>
             </section>
 
@@ -52,9 +52,9 @@ const PrivacyPolicy = () => {
               <h2 className="text-lg font-semibold text-gray-100 mb-3">3. Third-Party Services</h2>
               <p className="text-gray-400 leading-relaxed mb-3">Align relies on the following third-party services:</p>
               <ul className="list-disc list-inside text-gray-400 space-y-2 leading-relaxed">
-                <li><strong className="text-gray-300">Firebase (Google)</strong> — handles authentication. Subject to Google's Privacy Policy.</li>
-                <li><strong className="text-gray-300">Stripe</strong> — handles payment processing. Subject to Stripe's Privacy Policy.</li>
-                <li><strong className="text-gray-300">Anthropic (Claude API)</strong> — processes resume and cover letter content to generate AI output. Content you submit may be processed on Anthropic's servers per their usage policies.</li>
+                <li><strong className="text-gray-300">Firebase (Google)</strong>: handles authentication. Subject to Google's Privacy Policy.</li>
+                <li><strong className="text-gray-300">Stripe</strong>: handles payment processing. Subject to Stripe's Privacy Policy.</li>
+                <li><strong className="text-gray-300">Anthropic (Claude API)</strong>: processes resume and cover letter content to generate AI output. Content you submit may be processed on Anthropic's servers per their usage policies.</li>
               </ul>
             </section>
 

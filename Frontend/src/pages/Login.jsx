@@ -14,7 +14,7 @@ const Login = () => {
     setError("");
     try {
       await signInWithGoogle();
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError("Sign-in failed. Please try again.");
     } finally {

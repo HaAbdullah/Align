@@ -15,6 +15,7 @@ import Success from "./pages/Success";
 import SavedDocuments from "./pages/SavedDocuments";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -24,28 +25,21 @@ import { UsageProvider } from "./context/UsageContext";
 import "./App.css";
 import "./firebase/firebase";
 
-// Protected route component
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="w-10 h-10 border-2 border-gray-700 border-t-emerald-500 rounded-full animate-spin" />
+  </div>
+);
+
 const ProtectedRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
-
+  if (loading) return <LoadingSpinner />;
+  if (!currentUser) return <Navigate to="/login" />;
   return children;
 };
 
 function AppContent() {
-  const { currentUser } = useAuth();
-
   return (
     <>
       <Navbar />
@@ -59,7 +53,7 @@ function AppContent() {
         <Route path="/success" element={<Success />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/help" element={<Navigate to="/pricing" replace />} />
+        <Route path="/help" element={<Navigate to="/contact" replace />} />
 
         {/* Protected routes */}
         <Route
@@ -94,7 +88,9 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        {/* Add more protected routes here when needed */}
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

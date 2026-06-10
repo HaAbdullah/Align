@@ -1,72 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import Chat from "../components/Chat";
-import How from "../pages/How";
-import SEO from "../components/SEO";
+import { useAuth } from "../context/AuthContext";
+import LandingPage from "./LandingPage";
+import AppView from "./AppView";
 
-function Main() {
-  const [conversation, setConversation] = useState([]);
-  const [showATSTooltip, setShowATSTooltip] = useState(false);
-  const [showATSTooltip2, setShowATSTooltip2] = useState(false);
-  const [animateUnderline, setAnimateUnderline] = useState(false);
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="w-10 h-10 border-2 border-gray-700 border-t-emerald-500 rounded-full animate-spin" />
+  </div>
+);
 
-  useEffect(() => {
-    // Trigger the underline animation after component mounts
-    const timer = setTimeout(() => {
-      setAnimateUnderline(true);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+const Main = () => {
+  const { currentUser, loading } = useAuth();
 
-  return (
-    <div className="w-full min-h-screen bg-gray-900 text-gray-100">
-      <SEO
-        title="AI Resume Builder Using Jake's Resume Template"
-        description="Upload your resume and job description. Align's AI rewrites your application in seconds using Jake's resume template, ATS-optimized and recruiter-ready."
-        canonicalPath="/"
-      />
-      <div className="w-full flex justify-center items-center px-5 pt-10 pb-1 mt-14">
-        <div className="flex-1 text-center max-w-4xl">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent text-center leading-tight">
-            Tailor-Made Resumes & Cover Letters
-            <br />
-            in{" "}
-            <span className="relative inline-block">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Seconds
-              </span>
-              <span
-                className={`absolute left-0 h-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 transition-all duration-1000 ease-out ${
-                  animateUnderline ? "w-full" : "w-0"
-                }`}
-                style={{ bottom: "-6px" }}
-              />
-            </span>
-          </h1>
-
-          <p className="text-lg md:text-xl leading-relaxed text-gray-300 mt-4 text-center max-w-3xl mx-auto">
-            Upload your resume and job description. Align's AI rewrites your
-            experience to match exactly what employers want. We generate{" "}
-            <span className="text-purple-400 font-semibold">ATS-ready</span>{" "}
-            resumes using{" "}
-            <span className="text-emerald-400 font-semibold">
-              Jake's resume template
-            </span>
-            , the format trusted by engineers at top tech companies.
-          </p>
-          <div className="mt-8">
-            <Link
-              to="/signup"
-              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 border border-transparent rounded-full hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </div>
-      <Chat conversation={conversation} setConversation={setConversation} />
-    </div>
-  );
-}
+  if (loading) return <LoadingSpinner />;
+  return currentUser ? <AppView /> : <LandingPage />;
+};
 
 export default Main;

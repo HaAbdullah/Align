@@ -14,7 +14,7 @@ const SignUp = () => {
     setError("");
     try {
       await signInWithGoogle();
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError("Sign-up failed. Please try again.");
     } finally {
@@ -64,7 +64,7 @@ const SignUp = () => {
           <div className="mt-6 bg-gray-700/50 rounded-xl px-4 py-3 flex items-start gap-3">
             <span className="text-emerald-400 mt-0.5 text-base leading-none">✓</span>
             <p className="text-gray-400 text-xs leading-relaxed">
-              Free to start — no credit card required. Upgrade anytime for more generations.
+              Free to start. No credit card required. Upgrade anytime for more generations.
             </p>
           </div>
 

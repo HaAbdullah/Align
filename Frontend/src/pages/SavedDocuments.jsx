@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import { apiFetch } from "../utils/api";
+import { FileText, FileEdit, Star, Download, RefreshCw } from "lucide-react";
 
 const SavedDocuments = () => {
   const { currentUser, loading } = useAuth();
@@ -372,19 +373,7 @@ const SavedDocuments = () => {
               className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
               title="Refresh documents"
             >
-              <svg
-                className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+              <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
             </button>
           </div>
           <p className="text-xl text-gray-300">
@@ -437,23 +426,25 @@ const SavedDocuments = () => {
                 <div className="flex border-b border-gray-700 flex-shrink-0">
                   <button
                     onClick={() => setActiveTab("recent")}
-                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                       activeTab === "recent"
                         ? "bg-gray-700 text-white border-b-2 border-purple-500"
                         : "text-gray-400 hover:text-gray-200"
                     }`}
                   >
-                    📄 Recent ({recentDocuments.length})
+                    <FileText className="w-4 h-4" />
+                    Recent ({recentDocuments.length})
                   </button>
                   <button
                     onClick={() => setActiveTab("favorites")}
-                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                       activeTab === "favorites"
                         ? "bg-gray-700 text-white border-b-2 border-purple-500"
                         : "text-gray-400 hover:text-gray-200"
                     }`}
                   >
-                    ⭐ Favorites ({favoritedDocuments.length})
+                    <Star className="w-4 h-4" />
+                    Favorites ({favoritedDocuments.length})
                   </button>
                 </div>
 
@@ -461,7 +452,7 @@ const SavedDocuments = () => {
                 <div className="flex-1 overflow-y-auto">
                   {currentDocuments.length === 0 ? (
                     <div className="p-6 text-center text-gray-400">
-                      <div className="text-4xl mb-3">📄</div>
+                      <FileText className="w-10 h-10 mx-auto mb-3 opacity-40" />
                       <p>No {activeTab} documents yet</p>
                       <p className="text-sm mt-2">
                         {activeTab === "recent"
@@ -480,8 +471,8 @@ const SavedDocuments = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <span className="text-lg flex-shrink-0">
-                              {doc.document_type === "resume" ? "📄" : "📝"}
+                            <span className="flex-shrink-0 text-gray-400">
+                              {doc.document_type === "resume" ? <FileText className="w-5 h-5" /> : <FileEdit className="w-5 h-5" />}
                             </span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
@@ -594,10 +585,10 @@ const SavedDocuments = () => {
                   {/* Preview Header */}
                   <div className="flex items-center justify-between p-6 border-b border-gray-700 flex-shrink-0">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">
+                      <span className="text-gray-400">
                         {selectedDocument.document_type === "resume"
-                          ? "📄"
-                          : "📝"}
+                          ? <FileText className="w-6 h-6" />
+                          : <FileEdit className="w-6 h-6" />}
                       </span>
                       <div>
                         <h3 className="text-lg font-semibold text-white">
@@ -621,19 +612,7 @@ const SavedDocuments = () => {
                       onClick={downloadPDF}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
+                      <Download className="w-5 h-5" />
                       Download PDF
                     </button>
                   </div>
@@ -650,7 +629,7 @@ const SavedDocuments = () => {
               ) : (
                 <div className="bg-gray-800 rounded-xl border border-gray-700 h-[700px] flex items-center justify-center">
                   <div className="text-center text-gray-400">
-                    <div className="text-6xl mb-4">📄</div>
+                    <FileText className="w-14 h-14 mx-auto mb-4 opacity-30" />
                     <h3 className="text-xl font-semibold mb-2">
                       No Document Selected
                     </h3>

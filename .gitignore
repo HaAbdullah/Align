@@ -6,7 +6,9 @@ node_modules/
 
 # Claude Code settings
 .claude
-.playright-mcp
+.playwright-mcp
+*.png
+*.sql
 CLAUDE.md
 
 

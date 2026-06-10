@@ -91,16 +91,6 @@ const Navbar = () => {
               Pricing
             </Link>
 
-            {/* Dashboard button - only show if authenticated */}
-            {isAuthenticated && (
-              <Link
-                to="/dashboard"
-                className="bg-emerald-600 text-white font-semibold px-3 py-1.5 sm:px-4 sm:py-2 rounded-full hover:bg-opacity-90 text-xs sm:text-sm transition-all duration-300 shadow-sm"
-              >
-                Dashboard
-              </Link>
-            )}
-
             {/* Menu toggle */}
             <button
               onClick={toggleMobileMenu}
@@ -300,9 +290,6 @@ const Navbar = () => {
             className={`hidden lg:flex items-center ${
               scrolled ? "space-x-6" : "space-x-8"
             }`}
-            style={{
-              marginLeft: scrolled ? "80px" : "110px", // Adjust margin based on scroll state
-            }}
           >
             {/* Home link */}
             <Link

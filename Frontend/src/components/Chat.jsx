@@ -3,15 +3,6 @@ import ResumeUpload from "./ResumeUpload";
 import JobAnalysis from "./JobAnalysis";
 import TabsContainer from "./TabsContainer";
 
-// Add Google Fonts import
-const fontLink = document.createElement("link");
-fontLink.href =
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap";
-fontLink.rel = "stylesheet";
-if (!document.head.querySelector(`link[href="${fontLink.href}"]`)) {
-  document.head.appendChild(fontLink);
-}
-
 function Chat() {
   // Main state
   const [isResumeSubmitted, setIsResumeSubmitted] = useState(false);
@@ -64,7 +55,7 @@ function Chat() {
   };
 
   return (
-    <div className="font-['Inter'] max-w-6xl h-auto mx-auto p-5 transition-colors duration-300">
+    <div className="font-['Inter'] max-w-3xl h-auto mx-auto px-4 py-2 transition-colors duration-300">
       <div className="upload-options">
         <ResumeUpload
           resume={resume}

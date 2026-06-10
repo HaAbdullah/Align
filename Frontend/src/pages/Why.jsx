@@ -21,7 +21,7 @@ const Why = () => {
           </h1>
           <p className="text-xl font-medium mb-6 text-gray-900 dark:text-gray-200 transition-colors">
             <strong>Align fixes that. Tailored applications, powered by AI.</strong> We help you stand out by
-            tailoring your application to <em>each</em> job you apply to—without
+            tailoring your application to <em>each</em> job you apply to, without
             the hours of rewriting.
           </p>
         </div>
@@ -131,7 +131,7 @@ const Why = () => {
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 transition-colors">
                   Whether you're applying to 1 job or 100, Align helps you show
-                  your best self—every time, with{" "}
+                  your best self, every time, with{" "}
                   <button
                     className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer relative transition-colors"
                     onMouseEnter={() => setShowATSTooltip3(true)}
@@ -330,7 +330,7 @@ const Why = () => {
         <div className="text-center mt-8">
           <p className="text-2xl font-semibold text-green-800 dark:text-transparent dark:bg-gradient-to-r dark:from-blue-500 dark:via-purple-500 dark:to-pink-500 dark:bg-clip-text transition-colors">
             Smart Tools for Serious Job Seekers. From custom resumes and cover
-            letters to interview prep and market insights — all optimized to
+            letters to interview prep and market insights, all optimized to
             beat ATS and boost your chances every step of the way.
           </p>
         </div>

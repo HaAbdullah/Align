@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 
-let connected = false;
+let connectionPromise = null;
 
 async function connectDB() {
-  if (connected) return;
-  await mongoose.connect(process.env.MONGODB_URI);
-  connected = true;
-  console.log('✅ Connected to Cosmos DB (MongoDB API)');
+  if (connectionPromise) return connectionPromise;
+  connectionPromise = mongoose.connect(process.env.MONGODB_URI).then(() => {
+    console.log('✅ Connected to Cosmos DB (MongoDB API)');
+  });
+  return connectionPromise;
 }
 
 module.exports = { connectDB };

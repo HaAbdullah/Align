@@ -39,7 +39,7 @@ const How = () => {
               Upload Your Resume(s)
             </h2>
             <p className="text-lg mb-4 text-gray-300">
-              You can upload up to 3 versions of your resume — versions you've
+              You can upload up to 3 versions of your resume. Versions you've
               created for different roles or highlight different experiences.
             </p>
             <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded transition-colors">
@@ -225,9 +225,9 @@ const How = () => {
 
         <div className="text-center mt-8">
           <p className="text-2xl font-semibold text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text">
-            From Resume to Interview — We've Got You Covered. Tailored resumes,
+            From Resume to Interview. Tailored resumes,
             keyword-matched cover letters, culture insights, and company
-            research — all designed to pass ATS filters and land interviews.
+            research, all designed to pass ATS filters and land interviews.
           </p>
         </div>
       </div>

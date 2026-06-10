@@ -10,12 +10,14 @@ const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [darkMode, setDarkMode] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(null); // planName of the button in flight
+  const [checkoutError, setCheckoutError] = useState("");
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   const { currentUser, signInWithGoogle } = useAuth();
 
   const handleCheckout = async (planName, billingCycle) => {
     try {
       setCheckoutLoading(planName);
+      setCheckoutError("");
       // Check if user is authenticated
       if (!currentUser) {
         // Redirect to login or show login modal
@@ -46,9 +48,7 @@ const PricingPage = () => {
 
       if (!priceId || priceId === "none") {
         console.error("Price ID not found for:", planName, billingCycle);
-        alert(
-          "This billing option is not available yet. Please try monthly billing."
-        );
+        setCheckoutError("This billing option is not available yet. Please try monthly billing.");
         return;
       }
 
@@ -84,8 +84,7 @@ const PricingPage = () => {
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      alert(`Checkout failed: ${error.message}`);
-      // Clear stored plan data on error
+      setCheckoutError(`Checkout failed: ${error.message}`);
       sessionStorage.removeItem("selectedPlan");
       sessionStorage.removeItem("selectedBillingCycle");
     } finally {
@@ -361,6 +360,13 @@ const PricingPage = () => {
             </div>
           </div>
 
+          {/* Checkout error */}
+          {checkoutError && (
+            <div className="max-w-xl mx-auto mb-6 p-4 bg-red-900/40 border border-red-700 rounded-xl text-red-300 text-sm text-center">
+              {checkoutError}
+            </div>
+          )}
+
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
@@ -523,8 +529,8 @@ const PricingPage = () => {
                   a: "Yes! You can upgrade, downgrade, or cancel your subscription at any time. Changes take effect immediately.",
                 },
                 {
-                  q: "Is there a free trial?",
-                  a: "All paid plans come with a 7-day free trial. No credit card required to start your Freemium account.",
+                  q: "Is there a free plan?",
+                  a: "Yes. The Freemium plan is free forever. You get 2 resume and cover letter generations per month, keyword analysis, and ATS optimization with no credit card required.",
                 },
                 {
                   q: "What payment methods do you accept?",
